@@ -2,8 +2,10 @@ package com.aslmk.cloudfilestorage.service.Impl;
 
 import com.aslmk.cloudfilestorage.dto.RegisterDto;
 import com.aslmk.cloudfilestorage.entity.UserEntity;
+import com.aslmk.cloudfilestorage.exception.UserAlreadyExistsException;
 import com.aslmk.cloudfilestorage.repository.UserRepository;
 import com.aslmk.cloudfilestorage.service.UserService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,12 +26,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void save(RegisterDto user) {
-        UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(user.getUsername());
-        userEntity.setPassword(passwordEncoder.encode(user.getPassword()));
-        userEntity.setEnabled(true);
-        userRepository.save(userEntity);
+    public void save(RegisterDto user) throws UserAlreadyExistsException {
+        try {
+            UserEntity userEntity = new UserEntity();
+            userEntity.setUsername(user.getUsername());
+            userEntity.setPassword(passwordEncoder.encode(user.getPassword()));
+            userEntity.setEnabled(true);
+            userRepository.save(userEntity);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage().contains("users_username_key")) {
+                throw new UserAlreadyExistsException(
+                        String.format("User %s already exists", user.getUsername())
+                );
+            }
+        }
     }
 
     @Override
