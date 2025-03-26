@@ -46,7 +46,8 @@ public class SecurityConfig {
                         .passwordParameter("password")
                         .permitAll()
 
-                );
+                )
+                .logout(logout -> logout.logoutUrl("/auth/logout"));
 
         return http.build();
     }
