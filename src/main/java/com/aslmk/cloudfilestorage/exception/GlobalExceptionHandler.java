@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import java.time.LocalDateTime;
-
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -18,7 +16,6 @@ public class GlobalExceptionHandler {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setMessage(e.getMessage());
         errorResponseDto.setStatusCode(HttpStatus.NOT_FOUND.value());
-        errorResponseDto.setTimestamp(LocalDateTime.now());
 
         model.addAttribute("errorDto", errorResponseDto);
         return "error";
@@ -30,7 +27,6 @@ public class GlobalExceptionHandler {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setMessage(e.getMessage());
         errorResponseDto.setStatusCode(HttpStatus.NOT_FOUND.value());
-        errorResponseDto.setTimestamp(LocalDateTime.now());
 
         model.addAttribute("errorDto", errorResponseDto);
         return "error";
@@ -42,7 +38,6 @@ public class GlobalExceptionHandler {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setMessage(e.getMessage());
         errorResponseDto.setStatusCode(HttpStatus.CONFLICT.value());
-        errorResponseDto.setTimestamp(LocalDateTime.now());
 
         model.addAttribute("errorDto", errorResponseDto);
         return "error";
@@ -54,7 +49,6 @@ public class GlobalExceptionHandler {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setMessage("Page not found: " + e.getRequestURL());
         errorResponseDto.setStatusCode(HttpStatus.NOT_FOUND.value());
-        errorResponseDto.setTimestamp(LocalDateTime.now());
 
         model.addAttribute("errorDto", errorResponseDto);
         return "error";
