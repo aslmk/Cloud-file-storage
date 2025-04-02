@@ -1,5 +1,6 @@
 package com.aslmk.cloudfilestorage.exception;
 
+import io.minio.errors.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.ui.Model;
@@ -8,66 +9,79 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public String invalidCredentialsHandler(InvalidCredentialsException e, Model model) {
-
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto();
-        errorResponseDto.setMessage(e.getMessage());
-        errorResponseDto.setStatusCode(HttpStatus.UNAUTHORIZED.value());
-
-        model.addAttribute("errorDto", errorResponseDto);
+        handleException(e.getMessage(),
+                HttpStatus.UNAUTHORIZED.value(),
+                model);
         return "error";
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String usernameNotFoundHandler(UsernameNotFoundException e, Model model) {
-
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto();
-        errorResponseDto.setMessage(e.getMessage());
-        errorResponseDto.setStatusCode(HttpStatus.NOT_FOUND.value());
-
-        model.addAttribute("errorDto", errorResponseDto);
+        handleException(e.getMessage(),
+                HttpStatus.NOT_FOUND.value(),
+                model);
         return "error";
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public String userAlreadyExistsHandler(UserAlreadyExistsException e, Model model) {
-
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto();
-        errorResponseDto.setMessage(e.getMessage());
-        errorResponseDto.setStatusCode(HttpStatus.CONFLICT.value());
-
-        model.addAttribute("errorDto", errorResponseDto);
+        handleException(e.getMessage(),
+                HttpStatus.CONFLICT.value(),
+                model);
         return "error";
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String noHandlerFoundExceptionHandler(NoHandlerFoundException e, Model model) {
-
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto();
-        errorResponseDto.setMessage("Page not found: " + e.getRequestURL());
-        errorResponseDto.setStatusCode(HttpStatus.NOT_FOUND.value());
-
-        model.addAttribute("errorDto", errorResponseDto);
+        handleException("Page not found: " + e.getRequestURL(),
+                HttpStatus.NOT_FOUND.value(),
+                model);
         return "error";
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String exceptionHandler(Model model) {
-
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto();
-        errorResponseDto.setMessage("Internal server error.");
-        errorResponseDto.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-
-        model.addAttribute("errorDto", errorResponseDto);
+        handleException("Internal Server Error. Try again",
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                model);
         return "error";
+    }
+
+    @ExceptionHandler({ServerException.class,
+            InsufficientDataException.class,
+            ErrorResponseException.class,
+            IOException.class,
+            NoSuchAlgorithmException.class,
+            InvalidKeyException.class,
+            InvalidResponseException.class,
+            XmlParserException.class,
+            InternalException.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String minioExceptionHandler(Model model) {
+        handleException("Storage error. Try again",
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                model);
+        return "error";
+    }
+
+    private void handleException(String  message,int statusCode, Model model) {
+        ErrorResponseDto errorResponseDto = new ErrorResponseDto();
+        errorResponseDto.setMessage(message);
+        errorResponseDto.setStatusCode(statusCode);
+        model.addAttribute("errorDto", errorResponseDto);
     }
 }
