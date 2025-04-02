@@ -33,7 +33,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(
                         request -> request
-                                .requestMatchers("/auth/*").permitAll()
+                                .requestMatchers("/auth/*", "/css/**", "/js/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
