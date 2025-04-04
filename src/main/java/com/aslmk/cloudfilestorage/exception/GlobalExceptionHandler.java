@@ -78,6 +78,13 @@ public class GlobalExceptionHandler {
         return "error";
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public String accessDeniedExceptionHandler(AccessDeniedException e, Model model) {
+        handleException(e.getMessage(), HttpStatus.FORBIDDEN.value(), model);
+        return "error";
+    }
+
     private void handleException(String  message,int statusCode, Model model) {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setMessage(message);
