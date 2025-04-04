@@ -54,7 +54,6 @@ public class MinIoService {
             objects.add(item.objectName());
         }
 
-
         return objects;
     }
 
@@ -64,5 +63,27 @@ public class MinIoService {
                 .bucket("user-files")
                 .object(fileName)
                 .build());
+    }
+
+    public void renameFile(String S3FilePath, String oldFileName, String newFileName) throws  ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException{
+        StatObjectResponse stat = minioClient.statObject(StatObjectArgs.builder()
+                .bucket("user-files")
+                .object(S3FilePath + "/" + oldFileName)
+                .build());
+
+        try (InputStream oldFileStream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket("user-files")
+                        .object(S3FilePath + "/" + oldFileName)
+                        .build()
+        )){
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket("user-files")
+                    .object(S3FilePath + "/" + newFileName)
+                    .stream(oldFileStream, stat.size(), -1)
+                    .contentType(stat.contentType())
+                    .build());
+            removeFile(oldFileName);
+        }
     }
 }

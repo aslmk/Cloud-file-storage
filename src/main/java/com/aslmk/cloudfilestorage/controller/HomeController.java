@@ -4,6 +4,7 @@ import com.aslmk.cloudfilestorage.entity.UserEntity;
 import com.aslmk.cloudfilestorage.s3.MinIoService;
 import com.aslmk.cloudfilestorage.service.UserService;
 import io.minio.errors.*;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,10 +67,30 @@ public class HomeController {
 
        return "redirect:/home";
     }
-
     @PostMapping("/remove")
     public String remove(@RequestParam("fileName") String fileName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         minIoService.removeFile(fileName);
         return "redirect:/home";
     }
+
+    @PostMapping("/rename")
+    public String fileRename(@RequestParam("oldFileName") String oldFileName,
+                             @RequestParam("newFileName") String newFileName,
+                             Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        UserEntity userEntity = getUserFromPrincipal(principal);
+        String S3filePath = String.format("user-%s-files", userEntity.getId());
+        minIoService.renameFile(S3filePath, oldFileName, newFileName);
+        return "redirect:/home";
+    }
+
+    private UserEntity getUserFromPrincipal(Principal principal) {
+        String currentUser = principal.getName();
+        Optional<UserEntity> user = userService.findByUsername(currentUser);
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("Username not found");
+        }
+
+        return user.get();
+    }
+
 }
