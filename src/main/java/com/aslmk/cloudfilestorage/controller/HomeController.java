@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,14 +34,16 @@ public class HomeController {
 
 
     @GetMapping("/home")
-    public String homePage(Principal principal, Model model) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        String currentUser = principal.getName();
-        Optional<UserEntity> user = userService.findByUsername(currentUser);
-        if (user.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
+    public String redirectToPersonalFilesPage(Principal principal) {
+        UserEntity userEntity = getUserFromPrincipal(principal);
+        String S3UserFilesPath = String.format("user-%s-files", userEntity.getId());
 
-        UserEntity userEntity = user.get();
+        return "redirect:/"+S3UserFilesPath+"/home";
+    }
+
+    @GetMapping("/user-{userId}-files/home")
+    public String homePage(@PathVariable("userId") long userId, Principal principal, Model model) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        UserEntity userEntity = getUserFromPrincipal(principal);
 
         String bucketName = String.format("user-%s-files", userEntity.getId());
 
@@ -51,25 +54,22 @@ public class HomeController {
     }
 
     @PostMapping("/upload")
-    public String upload(@RequestParam("file") MultipartFile file, Principal principal, Model model) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        String currentUser = principal.getName();
-        Optional<UserEntity> user = userService.findByUsername(currentUser);
-        if (user.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
-        UserEntity userEntity = user.get();
-
+    public String fileUpload(@RequestParam("file") MultipartFile file, Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        UserEntity userEntity = getUserFromPrincipal(principal);
         String S3filePath = String.format("user-%s-files", userEntity.getId());
         String filename = file.getOriginalFilename();
         InputStream fileStream = file.getInputStream();
 
         minIoService.saveFile(S3filePath,filename,fileStream);
 
-       return "redirect:/home";
+        return "redirect:/home";
     }
     @PostMapping("/remove")
-    public String remove(@RequestParam("fileName") String fileName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        minIoService.removeFile(fileName);
+    public String fileRemove(@RequestParam("fileName") String fileName,
+                             Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        UserEntity userEntity = getUserFromPrincipal(principal);
+        String S3filePath = String.format("user-%s-files", userEntity.getId());
+        minIoService.removeFile(S3filePath + "/" + fileName);
         return "redirect:/home";
     }
 
