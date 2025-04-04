@@ -1,6 +1,7 @@
 package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.entity.UserEntity;
+import com.aslmk.cloudfilestorage.exception.AccessDeniedException;
 import com.aslmk.cloudfilestorage.s3.MinIoService;
 import com.aslmk.cloudfilestorage.service.UserService;
 import io.minio.errors.*;
@@ -45,9 +46,12 @@ public class HomeController {
     public String homePage(@PathVariable("userId") long userId, Principal principal, Model model) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         UserEntity userEntity = getUserFromPrincipal(principal);
 
-        String bucketName = String.format("user-%s-files", userEntity.getId());
+        if (userEntity.getId() != userId) {
+            throw new AccessDeniedException("You are not allowed to access this URL");
+        }
 
-        List<String> userFiles = minIoService.getAllFiles(bucketName);
+        String S3UserFilesPath = String.format("user-%s-files", userEntity.getId());
+        List<String> userFiles = minIoService.getAllFiles(S3UserFilesPath);
         model.addAttribute("userFiles", userFiles);
 
         return "home";
