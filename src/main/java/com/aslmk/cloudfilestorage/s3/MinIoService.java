@@ -51,7 +51,7 @@ public class MinIoService {
 
         for (Result<Item> result : results) {
             Item item = result.get();
-            objects.add(item.objectName());
+            objects.add(item.objectName().substring(S3filePath.length()+1));
         }
 
         return objects;
