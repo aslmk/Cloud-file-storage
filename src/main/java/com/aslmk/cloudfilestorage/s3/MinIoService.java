@@ -21,7 +21,7 @@ public class MinIoService {
         this.minioClient = minioClient;
     }
 
-    public void saveFile(String S3filePath, String fileName, InputStream fileStream) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public void saveItem(String S3ItemPath, String itemName, InputStream itemStream) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 
         boolean found = minioClient.bucketExists(BucketExistsArgs
                 .builder()
@@ -35,34 +35,34 @@ public class MinIoService {
         minioClient.putObject(PutObjectArgs
                 .builder()
                 .bucket("user-files")
-                .object(S3filePath + "/" + fileName)
-                .stream(fileStream, fileStream.available(), -1)
+                .object(S3ItemPath + "/" + itemName)
+                .stream(itemStream, itemStream.available(), -1)
                 .build());
     }
 
-    public List<String> getAllFiles(String S3filePath) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public List<String> getAllItems(String S3ItemPath) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         List<String> objects = new ArrayList<>();
 
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                 .builder()
                 .bucket("user-files")
-                .prefix(S3filePath + "/")
+                .prefix(S3ItemPath + "/")
                 .build());
 
         for (Result<Item> result : results) {
             Item item = result.get();
-            objects.add(item.objectName().substring(S3filePath.length()+1));
+            objects.add(item.objectName().substring(S3ItemPath.length()+1));
         }
 
         return objects;
     }
 
-    public void removeFile(String fileName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        if (fileName.endsWith("/")) {
+    public void removeItem(String itemName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        if (itemName.endsWith("/")) {
             Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                     .builder()
                     .bucket("user-files")
-                    .prefix(fileName)
+                    .prefix(itemName)
                     .recursive(true)
                     .build());
 
@@ -79,39 +79,17 @@ public class MinIoService {
             minioClient.removeObject(RemoveObjectArgs
                     .builder()
                     .bucket("user-files")
-                    .object(fileName)
+                    .object(itemName)
                     .build());
         }
 
     }
 
-    public void renameFile(String S3FilePath, String oldFileName, String newFileName) throws  ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException{
-        StatObjectResponse stat = minioClient.statObject(StatObjectArgs.builder()
-                .bucket("user-files")
-                .object(S3FilePath + "/" + oldFileName)
-                .build());
-
-        try (InputStream oldFileStream = minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket("user-files")
-                        .object(S3FilePath + "/" + oldFileName)
-                        .build()
-        )){
-            minioClient.putObject(PutObjectArgs.builder()
-                    .bucket("user-files")
-                    .object(S3FilePath + "/" + newFileName)
-                    .stream(oldFileStream, stat.size(), -1)
-                    .contentType(stat.contentType())
-                    .build());
-            removeFile(oldFileName);
-        }
-    }
-
-    public void renameFolder(String S3FilePath, String oldFolderName, String newFolderName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public void renameItem(String S3ItemPath, String oldItemName, String newItemName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                 .builder()
                 .bucket("user-files")
-                .prefix(S3FilePath + "/" + oldFolderName)
+                .prefix(S3ItemPath + "/" + oldItemName)
                 .recursive(true)
                 .build());
 
@@ -128,15 +106,15 @@ public class MinIoService {
                             .object(item.objectName())
                             .build()
             )){
-                String newFilePath = item.objectName().replace(oldFolderName, newFolderName);
+                String newItemPath = item.objectName().replace(oldItemName, newItemName);
                 minioClient.putObject(PutObjectArgs.builder()
                         .bucket("user-files")
-                        .object(newFilePath)
+                        .object(newItemPath)
                         .stream(oldFileStream, stat.size(), -1)
                         .contentType(stat.contentType())
                         .build());
             }
-            removeFile(item.objectName());
+            removeItem(item.objectName());
         }
     }
 }

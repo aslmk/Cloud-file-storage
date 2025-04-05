@@ -5,7 +5,6 @@ import com.aslmk.cloudfilestorage.exception.AccessDeniedException;
 import com.aslmk.cloudfilestorage.s3.MinIoService;
 import com.aslmk.cloudfilestorage.service.UserService;
 import io.minio.errors.*;
-import org.simpleframework.xml.Path;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,9 +37,9 @@ public class HomeController {
     @GetMapping("/home")
     public String redirectToPersonalFilesPage(Principal principal) {
         UserEntity userEntity = getUserFromPrincipal(principal);
-        String S3UserFilesPath = String.format("user-%s-files", userEntity.getId());
+        String S3UserItemsPath = String.format("user-%s-files", userEntity.getId());
 
-        return "redirect:/"+S3UserFilesPath+"/home";
+        return "redirect:/"+S3UserItemsPath+"/home";
     }
 
     @GetMapping("/user-{userId}-files/home")
@@ -52,45 +51,41 @@ public class HomeController {
         }
 
         String S3UserFilesPath = String.format("user-%s-files", userEntity.getId());
-        List<String> userFiles = minIoService.getAllFiles(S3UserFilesPath);
-        model.addAttribute("userFiles", userFiles);
+        List<String> userItems = minIoService.getAllItems(S3UserFilesPath);
+        model.addAttribute("userItems", userItems);
 
         return "home";
     }
 
     @PostMapping("/upload")
-    public String fileUpload(@RequestParam("file") MultipartFile[] files, Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public String uploadItem(@RequestParam("items") MultipartFile[] items, Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         UserEntity userEntity = getUserFromPrincipal(principal);
-        String S3filePath = String.format("user-%s-files", userEntity.getId());
-        for (MultipartFile file: files) {
-            String filename = file.getOriginalFilename();
-            InputStream fileStream = file.getInputStream();
+        String S3ItemPath = String.format("user-%s-files", userEntity.getId());
+        for (MultipartFile item: items) {
+            String itemName = item.getOriginalFilename();
+            InputStream itemStream = item.getInputStream();
 
-            minIoService.saveFile(S3filePath,filename,fileStream);
+            minIoService.saveItem(S3ItemPath,itemName,itemStream);
         }
 
         return "redirect:/home";
     }
     @PostMapping("/remove")
-    public String fileRemove(@RequestParam("fileName") String fileName,
+    public String removeItem(@RequestParam("itemName") String itemName,
                              Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         UserEntity userEntity = getUserFromPrincipal(principal);
-        String S3filePath = String.format("user-%s-files", userEntity.getId());
-        minIoService.removeFile(S3filePath + "/" + fileName);
+        String S3ItemPath = String.format("user-%s-files", userEntity.getId());
+        minIoService.removeItem(S3ItemPath + "/" + itemName);
         return "redirect:/home";
     }
 
     @PostMapping("/rename")
-    public String fileRename(@RequestParam("oldFileName") String oldFileName,
-                             @RequestParam("newFileName") String newFileName,
+    public String renameItem(@RequestParam("oldItemName") String oldItemName,
+                             @RequestParam("newItemName") String newItemName,
                              Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         UserEntity userEntity = getUserFromPrincipal(principal);
-        String S3filePath = String.format("user-%s-files", userEntity.getId());
-        if (oldFileName.endsWith("/") && newFileName.endsWith("/")) {
-            minIoService.renameFolder(S3filePath, oldFileName, newFileName);
-        } else {
-            minIoService.renameFile(S3filePath, oldFileName, newFileName);
-        }
+        String S3ItemPath = String.format("user-%s-files", userEntity.getId());
+        minIoService.renameItem(S3ItemPath, oldItemName, newItemName);
         return "redirect:/home";
     }
 

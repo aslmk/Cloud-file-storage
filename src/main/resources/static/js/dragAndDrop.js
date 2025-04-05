@@ -1,40 +1,39 @@
-function updateFileName() {
-    const fileInput = document.getElementById('file');
-    const fileNameElement = document.getElementById('selectedFileName');
+function updateItemName() {
+    const itemInput = document.getElementById('item');
+    const itemNameElement = document.getElementById('selectedItemName');
 
-    if (fileInput.files.length > 0) {
-        let fileText = "";
-        if (fileInput.files.length === 1) {
-            fileText = "File selected: " + fileInput.files[0].name;
+    if (itemInput.files.length > 0) {
+        let itemText = "";
+        if (itemInput.files.length === 1) {
+            itemText = "File selected: " + itemInput.files[0].name;
         } else {
-            fileText = "Selected files: " + fileInput.files.length;
+            itemText = "Selected files: " + itemInput.files.length;
         }
-        fileNameElement.textContent = fileText;
-        fileNameElement.classList.remove('d-none');
+        itemNameElement.textContent = itemText;
+        itemNameElement.classList.remove('d-none');
     } else {
-        fileNameElement.classList.add('d-none');
+        itemNameElement.classList.add('d-none');
     }
 }
 
 function toggleUploadType() {
-    const fileUploadRadio = document.getElementById('fileUpload');
-    const folderUploadRadio = document.getElementById('folderUpload');
-    const fileInput = document.getElementById('file');
+    const itemUploadRadio = document.getElementById('fileUpload');
+    const itemInput = document.getElementById('item');
 
-    if (fileUploadRadio.checked) {
-        fileInput.removeAttribute('webkitdirectory');
-        fileInput.removeAttribute('directory');
-        fileInput.removeAttribute('multiple');
+    if (itemUploadRadio.checked) {
+        itemInput.removeAttribute('webkitdirectory');
+        itemInput.removeAttribute('directory');
+        itemInput.removeAttribute('multiple');
     } else {
-        fileInput.setAttribute('webkitdirectory', '');
-        fileInput.setAttribute('directory', '');
-        fileInput.setAttribute('multiple', '');
+        itemInput.setAttribute('webkitdirectory', '');
+        itemInput.setAttribute('directory', '');
+        itemInput.setAttribute('multiple', '');
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('file');
+    const itemInput = document.getElementById('item');
     const fileUploadRadio = document.getElementById('fileUpload');
     const folderUploadRadio = document.getElementById('folderUpload');
 
@@ -44,9 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleUploadType();
     }
 
-    if (dropZone && fileInput) {
+    if (dropZone && itemInput) {
         dropZone.addEventListener('click', () => {
-            fileInput.click();
+            itemInput.click();
         });
 
         dropZone.addEventListener('dragover', (e) => {
@@ -63,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
             dropZone.classList.remove('border-primary');
 
             if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                updateFileName();
+                itemInput.files = e.dataTransfer.files;
+                updateItemName();
             }
         });
     }
