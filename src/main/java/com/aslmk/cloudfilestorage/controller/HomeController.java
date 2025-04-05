@@ -5,6 +5,7 @@ import com.aslmk.cloudfilestorage.exception.AccessDeniedException;
 import com.aslmk.cloudfilestorage.s3.MinIoService;
 import com.aslmk.cloudfilestorage.service.UserService;
 import io.minio.errors.*;
+import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -65,6 +66,10 @@ public class HomeController {
             String itemName = item.getOriginalFilename();
             InputStream itemStream = item.getInputStream();
 
+            if (itemName == null || itemName.isBlank()) {
+                throw new BadRequestException("Upload failed: No file or folder was provided");
+            }
+
             minIoService.saveItem(S3ItemPath,itemName,itemStream);
         }
 
@@ -85,7 +90,30 @@ public class HomeController {
                              Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         UserEntity userEntity = getUserFromPrincipal(principal);
         String S3ItemPath = String.format("user-%s-files", userEntity.getId());
-        minIoService.renameItem(S3ItemPath, oldItemName, newItemName);
+
+        if (newItemName.isBlank()) {
+            throw new BadRequestException("Invalid file or folder name");
+        }
+
+        if (oldItemName.endsWith("/")) {
+
+            newItemName = newItemName.replaceAll("/+$","");
+
+            newItemName += "/";
+
+            if (!isFolderNameValid(newItemName)) {
+                throw new BadRequestException("Invalid folder name");
+            }
+        } else {
+            if (newItemName.contains("/")) {
+                throw new BadRequestException("Invalid file name: cannot contain '/'");
+            }
+        }
+
+        if (!oldItemName.equals(newItemName)) {
+            minIoService.renameItem(S3ItemPath, oldItemName, newItemName);
+        }
+
         return "redirect:/home";
     }
 
@@ -97,6 +125,14 @@ public class HomeController {
         }
 
         return user.get();
+    }
+
+    private boolean isFolderNameValid(String folderName) {
+        if (folderName == null || folderName.isBlank()) {
+            return false;
+        }
+
+        return folderName.endsWith("/") && folderName.indexOf("/") == folderName.lastIndexOf("/");
     }
 
 }
