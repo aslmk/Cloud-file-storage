@@ -58,11 +58,31 @@ public class MinIoService {
     }
 
     public void removeFile(String fileName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        minioClient.removeObject(RemoveObjectArgs
-                .builder()
-                .bucket("user-files")
-                .object(fileName)
-                .build());
+        if (fileName.endsWith("/")) {
+            Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
+                    .builder()
+                    .bucket("user-files")
+                    .prefix(fileName)
+                    .recursive(true)
+                    .build());
+
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                minioClient.removeObject(RemoveObjectArgs
+                        .builder()
+                        .bucket("user-files")
+                        .object(item.objectName())
+                        .build());
+            }
+
+        } else {
+            minioClient.removeObject(RemoveObjectArgs
+                    .builder()
+                    .bucket("user-files")
+                    .object(fileName)
+                    .build());
+        }
+
     }
 
     public void renameFile(String S3FilePath, String oldFileName, String newFileName) throws  ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException{
@@ -84,6 +104,39 @@ public class MinIoService {
                     .contentType(stat.contentType())
                     .build());
             removeFile(oldFileName);
+        }
+    }
+
+    public void renameFolder(String S3FilePath, String oldFolderName, String newFolderName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
+                .builder()
+                .bucket("user-files")
+                .prefix(S3FilePath + "/" + oldFolderName)
+                .recursive(true)
+                .build());
+
+        for (Result<Item> result : results) {
+            Item item = result.get();
+            StatObjectResponse stat = minioClient.statObject(StatObjectArgs.builder()
+                    .bucket("user-files")
+                    .object(item.objectName())
+                    .build());
+
+            try (InputStream oldFileStream = minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket("user-files")
+                            .object(item.objectName())
+                            .build()
+            )){
+                String newFilePath = item.objectName().replace(oldFolderName, newFolderName);
+                minioClient.putObject(PutObjectArgs.builder()
+                        .bucket("user-files")
+                        .object(newFilePath)
+                        .stream(oldFileStream, stat.size(), -1)
+                        .contentType(stat.contentType())
+                        .build());
+            }
+            removeFile(item.objectName());
         }
     }
 }

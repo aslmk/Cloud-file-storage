@@ -46,10 +46,18 @@
         <div class="col-12 col-md-8 col-lg-6">
             <div class="card shadow-sm">
                 <div class="card-header bg-white">
-                    <h4 class="card-title mb-0">Files upload</h4>
+                    <h4 class="card-title mb-0">Files & Folders upload</h4>
                 </div>
                 <div class="card-body">
                     <form th:action="@{/upload}" method="post" enctype="multipart/form-data" id="uploadForm">
+                        <div class="mb-3 text-center">
+                            <div class="btn-group" role="group" aria-label="Upload type selector">
+                                <input type="radio" class="btn-check" name="uploadType" id="fileUpload" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="fileUpload">Files</label>
+                                <input type="radio" class="btn-check" name="uploadType" id="folderUpload" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="folderUpload">Folders</label>
+                            </div>
+                        </div>
                         <div class="upload-area" id="dropZone">
                             <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
                             <h5>Drag & drop or click to select</h5>
@@ -76,7 +84,7 @@
 
                 <div th:each="currentFile : ${userFiles}" class="file-item file-card shadow-sm">
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-file me-3 text-primary fa-lg"></i>
+                        <i th:class="${currentFile.endsWith('/') ? 'fas fa-folder me-3 text-warning fa-lg' : 'fas fa-file me-3 text-primary fa-lg'}"></i>
                         <span th:text="${currentFile}" class="text-break"></span>
                     </div>
                     <div class="d-flex">

@@ -5,6 +5,7 @@ import com.aslmk.cloudfilestorage.exception.AccessDeniedException;
 import com.aslmk.cloudfilestorage.s3.MinIoService;
 import com.aslmk.cloudfilestorage.service.UserService;
 import io.minio.errors.*;
+import org.simpleframework.xml.Path;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -58,13 +59,15 @@ public class HomeController {
     }
 
     @PostMapping("/upload")
-    public String fileUpload(@RequestParam("file") MultipartFile file, Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public String fileUpload(@RequestParam("file") MultipartFile[] files, Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         UserEntity userEntity = getUserFromPrincipal(principal);
         String S3filePath = String.format("user-%s-files", userEntity.getId());
-        String filename = file.getOriginalFilename();
-        InputStream fileStream = file.getInputStream();
+        for (MultipartFile file: files) {
+            String filename = file.getOriginalFilename();
+            InputStream fileStream = file.getInputStream();
 
-        minIoService.saveFile(S3filePath,filename,fileStream);
+            minIoService.saveFile(S3filePath,filename,fileStream);
+        }
 
         return "redirect:/home";
     }
@@ -83,7 +86,11 @@ public class HomeController {
                              Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         UserEntity userEntity = getUserFromPrincipal(principal);
         String S3filePath = String.format("user-%s-files", userEntity.getId());
-        minIoService.renameFile(S3filePath, oldFileName, newFileName);
+        if (oldFileName.endsWith("/") && newFileName.endsWith("/")) {
+            minIoService.renameFolder(S3filePath, oldFileName, newFileName);
+        } else {
+            minIoService.renameFile(S3filePath, oldFileName, newFileName);
+        }
         return "redirect:/home";
     }
 
