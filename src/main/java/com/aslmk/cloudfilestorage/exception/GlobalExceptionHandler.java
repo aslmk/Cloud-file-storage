@@ -1,6 +1,7 @@
 package com.aslmk.cloudfilestorage.exception;
 
 import io.minio.errors.*;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.ui.Model;
@@ -82,6 +83,13 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public String accessDeniedExceptionHandler(AccessDeniedException e, Model model) {
         handleException(e.getMessage(), HttpStatus.FORBIDDEN.value(), model);
+        return "error";
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String badRequestExceptionHandler(BadRequestException e, Model model) {
+        handleException(e.getMessage(), HttpStatus.BAD_REQUEST.value(), model);
         return "error";
     }
 
