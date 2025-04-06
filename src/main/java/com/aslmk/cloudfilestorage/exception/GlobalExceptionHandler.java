@@ -5,6 +5,7 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -13,6 +14,8 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -93,7 +96,31 @@ public class GlobalExceptionHandler {
         return "error";
     }
 
-    private void handleException(String  message,int statusCode, Model model) {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String validationExceptionsHandler(MethodArgumentNotValidException e, Model model) {
+        Map<String, String> errors = new HashMap<>();
+        e.getBindingResult().getFieldErrors().forEach((error) -> {
+            String fieldName = error.getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        StringBuilder errorMessage = new StringBuilder("Validation errors: ");
+        boolean first = true;
+        for (Map.Entry<String, String> entry : errors.entrySet()) {
+            if (!first) {
+                errorMessage.append("; ");
+            }
+            errorMessage.append(entry.getValue()).append("\n");
+            first = false;
+        }
+
+        handleException(errorMessage.toString(), HttpStatus.BAD_REQUEST.value(), model);
+        return "error";
+    }
+
+    private void handleException(String message, int statusCode, Model model) {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setMessage(message);
         errorResponseDto.setStatusCode(statusCode);
