@@ -20,18 +20,21 @@
                                     <div class="form-floating mb-3">
                                         <input th:field="*{username}" type="text" class="form-control" id="inputUsername" required>
                                         <label for="inputUsername" class="form-label">Username</label>
+                                        <p th:if="${#fields.hasErrors('username')}" class="text-danger" th:errors="*{username}"></p>
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="form-floating mb-3">
                                         <input th:field="*{password}" type="password" class="form-control" id="inputPassword" required>
                                         <label for="inputPassword" class="form-label">Password</label>
+                                        <p th:if="${#fields.hasErrors('password')}" class="text-danger" th:errors="*{password}"></p>
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="form-floating mb-3">
                                         <input th:field="*{passwordMatch}" type="password" class="form-control" id="inputPasswordMatch" required>
                                         <label for="inputPasswordMatch" class="form-label">Confirm password</label>
+                                        <p th:if="${#fields.hasErrors('passwordMatch')}" class="text-danger" th:errors="*{passwordMatch}"></p>
                                     </div>
                                 </div>
 

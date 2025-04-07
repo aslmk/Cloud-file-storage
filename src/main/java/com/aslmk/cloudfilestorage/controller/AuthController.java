@@ -6,6 +6,7 @@ import com.aslmk.cloudfilestorage.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,7 +35,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@Valid @ModelAttribute("user") RegisterDto registerDto) {
+    public String register(@Valid @ModelAttribute("user") RegisterDto registerDto,
+                           BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            return "register";
+        }
 
         if (!registerDto.getPassword().equals(registerDto.getPasswordMatch())) {
             throw new InvalidCredentialsException("Passwords do not match");
