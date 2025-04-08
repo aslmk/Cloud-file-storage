@@ -2,9 +2,11 @@ package com.aslmk.cloudfilestorage.service.Impl;
 
 import com.aslmk.cloudfilestorage.dto.RegisterDto;
 import com.aslmk.cloudfilestorage.entity.UserEntity;
+import com.aslmk.cloudfilestorage.exception.ServiceException;
 import com.aslmk.cloudfilestorage.exception.UserAlreadyExistsException;
 import com.aslmk.cloudfilestorage.repository.UserRepository;
 import com.aslmk.cloudfilestorage.service.UserService;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,11 +37,23 @@ public class UserServiceImpl implements UserService {
                     .build();
             userRepository.save(userEntity);
         } catch (DataIntegrityViolationException e) {
-            if (e.getMessage().contains("users_username_key")) {
-                throw new UserAlreadyExistsException(
-                        String.format("User %s already exists", user.getUsername())
-                );
+            Throwable rootCause = e.getRootCause();
+            if (rootCause instanceof ConstraintViolationException cve) {
+                 String constraintName = cve.getConstraintName();
+
+                if (constraintName == null) {
+                    throw new ServiceException("Unknown database constraint exception: " + e.getMessage());
+                }
+
+                 if (constraintName.equals("users_username_key")) {
+                     throw new UserAlreadyExistsException(
+                             String.format("User %s already exists", user.getUsername())
+                     );
+                 }
+            } else {
+                throw new ServiceException("Unexpected error occurred while saving user: " + e.getMessage());
             }
+
         }
     }
 
