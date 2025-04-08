@@ -28,10 +28,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void save(RegisterDto user) throws UserAlreadyExistsException {
         try {
-            UserEntity userEntity = new UserEntity();
-            userEntity.setUsername(user.getUsername());
-            userEntity.setPassword(passwordEncoder.encode(user.getPassword()));
-            userEntity.setEnabled(true);
+            UserEntity userEntity = UserEntity.builder()
+                    .username(user.getUsername())
+                    .password(passwordEncoder.encode(user.getPassword()))
+                    .enabled(true)
+                    .build();
             userRepository.save(userEntity);
         } catch (DataIntegrityViolationException e) {
             if (e.getMessage().contains("users_username_key")) {
