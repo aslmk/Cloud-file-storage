@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +42,12 @@ public class HomeController {
                            @RequestParam(value = "path", required = false) String path,
                            Model model) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         UserEntity userEntity = getUserFromPrincipal(principal);
-        String S3UserItemsPath = resolveUserS3Path(path, userEntity.getId());
+        String S3UserItemsPath = String.format("user-%s-files/", userEntity.getId());
+        if (path != null && !path.isEmpty()) {
+            S3UserItemsPath = UriComponentsBuilder.fromUriString(path)
+                    .build()
+                    .getPath();
+        }
         List<String> userItems = minIoService.getAllItems(S3UserItemsPath);
         model.addAttribute("userItems", userItems);
 
