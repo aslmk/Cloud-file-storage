@@ -29,6 +29,7 @@
             </div>
             <form th:action="@{/rename}" method="post" class="m-0">
                 <div class="modal-body">
+                    <input type="hidden" name="path" id="renamePath">
                     <label for="itemNameInput" class="form-label">Enter new file or folder name below:</label>
                     <input type="text" class="form-control" id="itemNameInput" name="newItemName">
                     <input type="hidden" id="originalItemName" name="oldItemName">
@@ -52,6 +53,7 @@
                     <form th:action="@{/upload}" method="post" enctype="multipart/form-data" id="uploadForm">
                         <div class="mb-3 text-center">
                             <div class="btn-group" role="group" aria-label="Upload type selector">
+                                <input type="hidden" name="path" id="path">
                                 <input type="radio" class="btn-check" name="uploadType" id="fileUpload" autocomplete="off" checked>
                                 <label class="btn btn-outline-primary" for="fileUpload">Files</label>
                                 <input type="radio" class="btn-check" name="uploadType" id="folderUpload" autocomplete="off">
@@ -86,12 +88,14 @@
                     <div class="d-flex align-items-center">
                         <i th:class="${currentItem.endsWith('/') ? 'fas fa-folder me-3 text-warning fa-lg' : 'fas fa-file me-3 text-primary fa-lg'}"></i>
                         <div th:switch="${currentItem.endsWith('/')}">
-                            <span th:case="true"
-                                  th:text="${currentItem.substring(0, currentItem.lastIndexOf('/'))}"
-                                  class="text-break">
-                            </span>
+                            <form th:action="@{/home}" th:case="true" method="get">
+                                <input type="hidden" name="path" th:value="${currentItem}">
+                                <button type="submit" th:text="${currentItem.substring(currentItem.lastIndexOf('/', currentItem.lastIndexOf('/') - 1) + 1, currentItem.lastIndexOf('/'))}"
+                                        style="background: none; border: none; color: inherit; cursor: pointer;">
+                                </button>
+                            </form>
                             <span th:case="false"
-                                  th:text="${currentItem}"
+                                  th:text="${currentItem.substring(currentItem.lastIndexOf('/')+1)}"
                                   class="text-break">
                             </span>
                         </div>
@@ -119,9 +123,32 @@
 <script type="text/javascript">
     $('#changeNameModal').on('show.bs.modal', function (event) {
         var itemName = $(event.relatedTarget).data("whatever");
-        $('#itemNameInput').val(itemName.endsWith('/') ? itemName.slice(0, -1) : itemName);
+
+        const cleanPath = itemName.endsWith('/') ? itemName.slice(0, -1) : itemName;
+
+        const parts = cleanPath.split('/');
+        const displayName = parts[parts.length - 1];
+
+        $('#itemNameInput').val(displayName);
         $('#originalItemName').val(itemName);
-    })
+    });
+</script>
+<script>
+    function getParameterByName(name) {
+        const url = window.location.href;
+        name = name.replace(/[$$$$]/g, '\\$&');
+        const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+        const results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return results[2];
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const pathValue = getParameterByName('path');
+        document.getElementById('path').value = pathValue;
+        document.getElementById('renamePath').value = pathValue;
+    });
 </script>
 </body>
 </html>

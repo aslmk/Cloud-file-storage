@@ -21,8 +21,7 @@ public class MinIoService {
         this.minioClient = minioClient;
     }
 
-    public void saveItem(String S3ItemPath, String itemName, InputStream itemStream) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-
+    public void saveItem(String S3UserItemsPath, String itemName, InputStream itemStream) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         boolean found = minioClient.bucketExists(BucketExistsArgs
                 .builder()
                 .bucket("user-files")
@@ -35,23 +34,23 @@ public class MinIoService {
         minioClient.putObject(PutObjectArgs
                 .builder()
                 .bucket("user-files")
-                .object(S3ItemPath + "/" + itemName)
+                .object(S3UserItemsPath + "/" + itemName)
                 .stream(itemStream, itemStream.available(), -1)
                 .build());
     }
 
-    public List<String> getAllItems(String S3ItemPath) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public List<String> getAllItems(String S3UserItemsPath) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         List<String> objects = new ArrayList<>();
 
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                 .builder()
                 .bucket("user-files")
-                .prefix(S3ItemPath + "/")
+                .prefix(S3UserItemsPath)
                 .build());
 
         for (Result<Item> result : results) {
             Item item = result.get();
-            objects.add(item.objectName().substring(S3ItemPath.length()+1));
+            objects.add(item.objectName());
         }
 
         return objects;
@@ -85,14 +84,13 @@ public class MinIoService {
 
     }
 
-    public void renameItem(String S3ItemPath, String oldItemName, String newItemName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public void renameItem(String S3UserItemsPath, String oldItemName, String newItemName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                 .builder()
                 .bucket("user-files")
-                .prefix(S3ItemPath + "/" + oldItemName)
+                .prefix(oldItemName)
                 .recursive(true)
                 .build());
-
         for (Result<Item> result : results) {
             Item item = result.get();
             StatObjectResponse stat = minioClient.statObject(StatObjectArgs.builder()
@@ -106,10 +104,14 @@ public class MinIoService {
                             .object(item.objectName())
                             .build()
             )){
-                String newItemPath = item.objectName().replace(oldItemName, newItemName);
+                String newItemPath = S3UserItemsPath + newItemName;
+                String currentFileName = item.objectName().substring(item.objectName().lastIndexOf("/") + 1);
+
+                String res = newItemPath.endsWith("/") ? (newItemPath+"/"+currentFileName) : newItemPath;
+
                 minioClient.putObject(PutObjectArgs.builder()
                         .bucket("user-files")
-                        .object(newItemPath)
+                        .object(res)
                         .stream(oldFileStream, stat.size(), -1)
                         .contentType(stat.contentType())
                         .build());
