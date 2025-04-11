@@ -6,14 +6,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final UserService userService;
@@ -33,18 +37,14 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(
                         request -> request
-                                .requestMatchers("/auth/*", "/css/**", "/js/**").permitAll()
+                                .requestMatchers("/auth/**", "/css/**", "/js/**").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .loginPage("/auth/login")
-                        .loginProcessingUrl("/auth/login")
-                        .defaultSuccessUrl("/home")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .permitAll()
 
-                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendRedirect("/auth/login")))
+
                 .logout(logout -> logout.logoutUrl("/auth/logout"));
 
         return http.build();
@@ -56,6 +56,11 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder());
         authProvider.setUserDetailsService(userService);
         return authProvider;
+    }
+
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
     }
 
     @Bean
