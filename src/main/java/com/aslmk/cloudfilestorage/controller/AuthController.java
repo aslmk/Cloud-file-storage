@@ -90,7 +90,7 @@ public class AuthController {
             throw new InvalidCredentialsException("Passwords do not match");
         }
 
-        userService.save(registerDto);
+        userService.saveUser(registerDto);
 
 
         return "redirect:/auth/login";

@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void save(RegisterDto user) throws UserAlreadyExistsException, ServiceException {
+    public void saveUser(RegisterDto user) throws UserAlreadyExistsException, ServiceException {
         try {
             UserEntity userEntity = UserEntity.builder()
                     .username(user.getUsername())
