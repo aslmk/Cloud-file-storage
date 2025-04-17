@@ -1,5 +1,6 @@
 package com.aslmk.cloudfilestorage.s3;
 
+import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
@@ -117,6 +118,47 @@ public class MinIoService {
                         .build());
             }
             removeItem(item.objectName());
+        }
+    }
+
+    public List<SearchResultsDto> searchItems(String query, String S3UserItemsPath) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        List<SearchResultsDto> searchResults = new ArrayList<>();
+
+        Iterable<Result<Item>> rootFolder = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket("user-files")
+                        .prefix(S3UserItemsPath)
+                        .build()
+        );
+
+        traverseAndSearchBySuffix(rootFolder, searchResults, query);
+
+        return searchResults;
+    }
+
+
+    private void traverseAndSearchBySuffix(Iterable<Result<Item>> itemResults, List<SearchResultsDto> searchResults, String nameSuffix) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        for (Result<Item> itemResult : itemResults) {
+            Item item = itemResult.get();
+
+            if(item.objectName().endsWith(nameSuffix)) {
+                SearchResultsDto searchResult = SearchResultsDto.builder()
+                        .itemName(nameSuffix)
+                        .displayPath(item.objectName().substring(0, item.objectName().lastIndexOf(nameSuffix)))
+                        .absolutePath(item.objectName())
+                        .isDirectory(item.objectName().endsWith("/"))
+                        .build();
+                searchResults.add(searchResult);
+            }
+
+            if (item.objectName().endsWith("/")) {
+                Iterable<Result<Item>> nestedItems = minioClient.listObjects(
+                        ListObjectsArgs.builder()
+                                .bucket("user-files")
+                                .prefix(item.objectName())
+                                .build());
+                traverseAndSearchBySuffix(nestedItems, searchResults, nameSuffix);
+            }
         }
     }
 }
