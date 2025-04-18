@@ -2,10 +2,10 @@ package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.entity.UserEntity;
 import com.aslmk.cloudfilestorage.s3.MinIoService;
-import com.aslmk.cloudfilestorage.service.UserService;
+import com.aslmk.cloudfilestorage.util.UserSessionUtils;
 import io.minio.errors.*;
+import jakarta.servlet.http.HttpSession;
 import org.apache.coyote.BadRequestException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,27 +21,24 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 public class HomeController {
-
-    private final UserService userService;
     private final MinIoService minIoService;
+    private final UserSessionUtils userSessionUtils;
 
-    public HomeController(UserService userService, MinIoService minIoService) {
-        this.userService = userService;
+    public HomeController(MinIoService minIoService, UserSessionUtils userSessionUtils) {
         this.minIoService = minIoService;
+        this.userSessionUtils = userSessionUtils;
     }
 
-
     @GetMapping("/home")
-    public String homePage(Principal principal,
-                           @RequestParam(value = "path", required = false) String path,
-                           Model model) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        UserEntity userEntity = getUserFromPrincipal(principal);
+    public String homePage(@RequestParam(value = "path", required = false) String path,
+                           Model model,
+                           HttpSession session) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        UserEntity userEntity = userSessionUtils.getUserFromSession(session);
+
         String S3UserItemsPath = String.format("user-%s-files/", userEntity.getId());
         if (path != null && !path.isEmpty()) {
             S3UserItemsPath = UriComponentsBuilder.fromUriString(path)
@@ -57,10 +54,10 @@ public class HomeController {
 
     @PostMapping("/upload")
     public String uploadItem(@RequestParam("items") MultipartFile[] items,
-                             Principal principal,
+                             HttpSession session,
                              @RequestParam(value = "path", required = false) String path) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 
-        UserEntity userEntity = getUserFromPrincipal(principal);
+        UserEntity userEntity = userSessionUtils.getUserFromSession(session);
         String S3UserItemsPath = resolveUserS3Path(path, userEntity.getId());
 
         for (MultipartFile item: items) {
@@ -78,11 +75,11 @@ public class HomeController {
     }
     @PostMapping("/remove")
     public String removeItem(@RequestParam("itemName") String itemName,
-                             Principal principal,
+                             HttpSession session,
                              @RequestParam(value = "path", required = false) String path) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         minIoService.removeItem(itemName);
 
-        UserEntity userEntity = getUserFromPrincipal(principal);
+        UserEntity userEntity = userSessionUtils.getUserFromSession(session);
         String S3UserItemsPath = resolveUserS3Path(path, userEntity.getId());
         return "redirect:/home?path=" + URLEncoder.encode(S3UserItemsPath, StandardCharsets.UTF_8);
     }
@@ -92,9 +89,9 @@ public class HomeController {
             @RequestParam(value = "path", required = false) String path,
             @RequestParam("oldItemName") String oldItemName,
             @RequestParam("newItemName") String newItemName,
-            Principal principal) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+            HttpSession session) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 
-        UserEntity userEntity = getUserFromPrincipal(principal);
+        UserEntity userEntity = userSessionUtils.getUserFromSession(session);
         String S3UserItemsPath = resolveUserS3Path(path, userEntity.getId());
 
         if (newItemName.isBlank()) {
@@ -119,16 +116,6 @@ public class HomeController {
         minIoService.renameItem(S3UserItemsPath, oldItemName, newItemName);
 
         return "redirect:/home?path=" + URLEncoder.encode(S3UserItemsPath, StandardCharsets.UTF_8);
-    }
-
-    private UserEntity getUserFromPrincipal(Principal principal) {
-        String currentUser = principal.getName();
-        Optional<UserEntity> user = userService.findByUsername(currentUser);
-        if (user.isEmpty()) {
-            throw new UsernameNotFoundException("Username not found");
-        }
-
-        return user.get();
     }
 
     private boolean isFolderNameValid(String folderName) {

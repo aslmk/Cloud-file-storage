@@ -6,6 +6,7 @@ import com.aslmk.cloudfilestorage.exception.InvalidCredentialsException;
 import com.aslmk.cloudfilestorage.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,7 +50,8 @@ public class AuthController {
     public String login(@Valid @ModelAttribute("user") LoginDto loginDto,
                         BindingResult bindingResult,
                         HttpServletRequest request,
-                        HttpServletResponse response) {
+                        HttpServletResponse response,
+                        HttpSession session) {
 
         if (bindingResult.hasErrors()) {
             return "login";
@@ -66,6 +68,7 @@ public class AuthController {
             context.setAuthentication(authentication);
             securityContextHolderStrategy.setContext(context);
             securityContextRepository.saveContext(context, request, response);
+            session.setAttribute("username", loginDto.getUsername());
             return "redirect:/home";
         }
         return "login";
