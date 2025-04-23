@@ -2,7 +2,6 @@ package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.LoginDto;
 import com.aslmk.cloudfilestorage.dto.RegisterDto;
-import com.aslmk.cloudfilestorage.exception.InvalidCredentialsException;
 import com.aslmk.cloudfilestorage.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -90,7 +89,7 @@ public class AuthController {
         }
 
         if (!registerDto.getPassword().equals(registerDto.getPasswordMatch())) {
-            throw new InvalidCredentialsException("Passwords do not match");
+            return "redirect:/auth/register?error";
         }
 
         userService.saveUser(registerDto);

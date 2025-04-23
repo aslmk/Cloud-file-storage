@@ -46,6 +46,10 @@ public class SecurityConfig {
 
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) ->
+                                response.sendRedirect("/auth/register?error")))
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
                                 response.sendRedirect("/auth/login?error")))
 
                 .logout(logout -> logout.logoutUrl("/auth/logout"));
