@@ -17,15 +17,6 @@ import java.security.NoSuchAlgorithmException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(InvalidCredentialsException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public String invalidCredentialsHandler(InvalidCredentialsException e, Model model) {
-        handleException(e.getMessage(),
-                HttpStatus.UNAUTHORIZED.value(),
-                model);
-        return "error";
-    }
-
     @ExceptionHandler(UsernameNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String usernameNotFoundHandler(UsernameNotFoundException e, Model model) {
@@ -53,14 +44,6 @@ public class GlobalExceptionHandler {
         return "error";
     }
 
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public String exceptionHandler(Model model) {
-        handleException("Internal Server Error. Try again",
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                model);
-        return "error";
-    }
 
     @ExceptionHandler({ServerException.class,
             InsufficientDataException.class,
