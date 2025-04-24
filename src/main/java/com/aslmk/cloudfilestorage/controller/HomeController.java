@@ -95,24 +95,8 @@ public class HomeController {
         UserEntity userEntity = userSessionUtils.getUserFromSession(session);
         String S3UserItemsPath = resolveUserS3Path(path, userEntity.getId());
 
-        if (newItemName.isBlank()) {
-            throw new BadRequestException("Invalid file or folder name");
-        }
-
-        if (oldItemName.endsWith("/")) { // current item is a folder
-
-            newItemName = newItemName.replaceAll("/+$","");
-
-            newItemName += "/";
-
-            if (!isFolderNameValid(newItemName)) {
-                throw new BadRequestException("Invalid folder name");
-            }
-        } else {
-            if (newItemName.contains("/")) {
-                throw new BadRequestException("Invalid file name: cannot contain '/'");
-            }
-        }
+        isItemNamesCorrect(oldItemName, newItemName);
+        newItemName = normalizeS3ObjectName(oldItemName, newItemName);
 
         minIoService.renameItem(S3UserItemsPath, oldItemName, newItemName);
 
@@ -135,4 +119,23 @@ public class HomeController {
         return S3UserItemsPath;
     }
 
+    private void isItemNamesCorrect(String oldItemName, String newItemName) throws BadRequestException {
+        if (newItemName.isBlank()) {
+            throw new BadRequestException("Invalid file or folder name");
+        }
+
+        if (oldItemName.endsWith("/") && !isFolderNameValid(newItemName)) {
+            throw new BadRequestException("Invalid folder name");
+        } else if (newItemName.contains("/")) {
+            throw new BadRequestException("Invalid file name: cannot contain '/'");
+        }
+    }
+
+    private String normalizeS3ObjectName(String oldItemName, String newItemName) {
+        if (oldItemName.endsWith("/")) {
+            newItemName = newItemName.replaceAll("/+$","");
+            newItemName += "/";
+        }
+        return newItemName;
+    }
 }
