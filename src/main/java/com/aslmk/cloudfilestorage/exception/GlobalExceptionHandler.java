@@ -62,12 +62,6 @@ public class GlobalExceptionHandler {
         return "error";
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public String accessDeniedExceptionHandler(AccessDeniedException e, Model model) {
-        handleException(e.getMessage(), HttpStatus.FORBIDDEN.value(), model);
-        return "error";
-    }
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
