@@ -55,16 +55,16 @@
 
                 <div th:each="currentItem : ${userItems}" class="file-item file-card shadow-sm">
                     <div class="d-flex align-items-center">
-                        <i th:class="${currentItem.endsWith('/') ? 'fas fa-folder me-3 text-warning fa-lg' : 'fas fa-file me-3 text-primary fa-lg'}"></i>
-                        <div th:switch="${currentItem.endsWith('/')}">
+                        <i th:class="${currentItem.isDirectory ? 'fas fa-folder me-3 text-warning fa-lg' : 'fas fa-file me-3 text-primary fa-lg'}"></i>
+                        <div th:switch="${currentItem.isDirectory}">
                             <form th:action="@{/home}" th:case="true" method="get">
-                                <input type="hidden" name="path" th:value="${currentItem}">
-                                <button type="submit" th:text="${currentItem.substring(currentItem.lastIndexOf('/', currentItem.lastIndexOf('/') - 1) + 1, currentItem.lastIndexOf('/'))}"
+                                <input type="hidden" name="path" th:value="${currentItem.absolutePath}">
+                                <button type="submit" th:text="${currentItem.itemName}"
                                         style="background: none; border: none; color: inherit; cursor: pointer;">
                                 </button>
                             </form>
                             <span th:case="false"
-                                  th:text="${currentItem.substring(currentItem.lastIndexOf('/')+1)}"
+                                  th:text="${currentItem.itemName}"
                                   class="text-break">
                             </span>
                         </div>

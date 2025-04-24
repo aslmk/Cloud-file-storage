@@ -1,5 +1,6 @@
 package com.aslmk.cloudfilestorage.s3;
 
+import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
 import io.minio.*;
 import io.minio.errors.*;
@@ -40,8 +41,8 @@ public class MinIoService {
                 .build());
     }
 
-    public List<String> getAllItems(String S3UserItemsPath) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        List<String> objects = new ArrayList<>();
+    public List<S3ItemInfoDto> getAllItems(String S3UserItemsPath) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        List<S3ItemInfoDto> items = new ArrayList<>();
 
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                 .builder()
@@ -51,10 +52,18 @@ public class MinIoService {
 
         for (Result<Item> result : results) {
             Item item = result.get();
-            objects.add(item.objectName());
+
+            String itemName = getItemNameFromAbsolutePath(item.objectName());
+
+            S3ItemInfoDto itemInfo = S3ItemInfoDto.builder()
+                    .itemName(itemName)
+                    .absolutePath(item.objectName())
+                    .isDirectory(item.objectName().endsWith("/"))
+                    .build();
+            items.add(itemInfo);
         }
 
-        return objects;
+        return items;
     }
 
     public void removeItem(String itemName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
@@ -136,7 +145,6 @@ public class MinIoService {
         return searchResults;
     }
 
-
     private void traverseAndSearchBySuffix(Iterable<Result<Item>> itemResults, List<SearchResultsDto> searchResults, String nameSuffix) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         for (Result<Item> itemResult : itemResults) {
             Item item = itemResult.get();
@@ -160,5 +168,15 @@ public class MinIoService {
                 traverseAndSearchBySuffix(nestedItems, searchResults, nameSuffix);
             }
         }
+    }
+
+    private String getItemNameFromAbsolutePath(String item) {
+        String itemName;
+        if (item.endsWith("/")) {
+            itemName = item.substring(item.lastIndexOf('/', item.lastIndexOf('/') - 1) + 1, item.lastIndexOf('/'));
+        } else {
+            itemName = item.substring(item.lastIndexOf('/') + 1);
+        }
+        return itemName;
     }
 }

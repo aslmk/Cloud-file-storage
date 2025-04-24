@@ -1,5 +1,6 @@
 package com.aslmk.cloudfilestorage.controller;
 
+import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.entity.UserEntity;
 import com.aslmk.cloudfilestorage.s3.MinIoService;
 import com.aslmk.cloudfilestorage.util.UserSessionUtils;
@@ -45,7 +46,7 @@ public class HomeController {
                     .build()
                     .getPath();
         }
-        List<String> userItems = minIoService.getAllItems(S3UserItemsPath);
+        List<S3ItemInfoDto> userItems = minIoService.getAllItems(S3UserItemsPath);
         model.addAttribute("userItems", userItems);
 
         return "home";
