@@ -1,6 +1,7 @@
 package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
+import com.aslmk.cloudfilestorage.dto.UploadItemRequestDto;
 import com.aslmk.cloudfilestorage.entity.UserEntity;
 import com.aslmk.cloudfilestorage.s3.MinIoService;
 import com.aslmk.cloudfilestorage.util.UserSessionUtils;
@@ -69,7 +70,13 @@ public class HomeController {
                 throw new BadRequestException("Upload failed: No file or folder was provided");
             }
 
-            minIoService.saveItem(S3UserItemsPath,itemName,itemStream);
+            UploadItemRequestDto uploadItemRequestDto = UploadItemRequestDto.builder()
+                    .itemName(itemName)
+                    .itemInputStream(itemStream)
+                    .absolutePath(S3UserItemsPath+"/"+itemName)
+                    .build();
+
+            minIoService.saveItem(uploadItemRequestDto);
         }
 
         return "redirect:/home?path="+ URLEncoder.encode(S3UserItemsPath, StandardCharsets.UTF_8);

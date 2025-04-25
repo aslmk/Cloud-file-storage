@@ -2,6 +2,7 @@ package com.aslmk.cloudfilestorage.s3;
 
 import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
+import com.aslmk.cloudfilestorage.dto.UploadItemRequestDto;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
@@ -27,7 +28,7 @@ public class MinIoService {
         this.minioClient = minioClient;
     }
 
-    public void saveItem(String S3UserItemsPath, String itemName, InputStream itemStream) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public void saveItem(UploadItemRequestDto uploadItem) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         boolean found = minioClient.bucketExists(BucketExistsArgs
                 .builder()
                 .bucket(bucketName)
@@ -40,8 +41,12 @@ public class MinIoService {
         minioClient.putObject(PutObjectArgs
                 .builder()
                 .bucket(bucketName)
-                .object(S3UserItemsPath + "/" + itemName)
-                .stream(itemStream, itemStream.available(), -1)
+                .object(uploadItem.getAbsolutePath())
+                .stream(
+                        uploadItem.getItemInputStream(),
+                        uploadItem.getItemInputStream().available(),
+                        -1
+                )
                 .build());
     }
 
