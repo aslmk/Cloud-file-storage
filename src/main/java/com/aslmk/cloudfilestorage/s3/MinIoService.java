@@ -5,6 +5,7 @@ import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,6 +18,9 @@ import java.util.List;
 @Service
 public class MinIoService {
 
+    @Value("${minio.bucketName}")
+    private String bucketName;
+
     private final MinioClient minioClient;
 
     public MinIoService(MinioClient minioClient) {
@@ -26,16 +30,16 @@ public class MinIoService {
     public void saveItem(String S3UserItemsPath, String itemName, InputStream itemStream) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         boolean found = minioClient.bucketExists(BucketExistsArgs
                 .builder()
-                .bucket("user-files")
+                .bucket(bucketName)
                 .build());
 
         if (!found) {
-            minioClient.makeBucket(MakeBucketArgs.builder().bucket("user-files").build());
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
         }
 
         minioClient.putObject(PutObjectArgs
                 .builder()
-                .bucket("user-files")
+                .bucket(bucketName)
                 .object(S3UserItemsPath + "/" + itemName)
                 .stream(itemStream, itemStream.available(), -1)
                 .build());
@@ -46,7 +50,7 @@ public class MinIoService {
 
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                 .builder()
-                .bucket("user-files")
+                .bucket(bucketName)
                 .prefix(S3UserItemsPath)
                 .build());
 
@@ -70,7 +74,7 @@ public class MinIoService {
         if (itemName.endsWith("/")) {
             Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                     .builder()
-                    .bucket("user-files")
+                    .bucket(bucketName)
                     .prefix(itemName)
                     .recursive(true)
                     .build());
@@ -79,7 +83,7 @@ public class MinIoService {
                 Item item = result.get();
                 minioClient.removeObject(RemoveObjectArgs
                         .builder()
-                        .bucket("user-files")
+                        .bucket(bucketName)
                         .object(item.objectName())
                         .build());
             }
@@ -87,7 +91,7 @@ public class MinIoService {
         } else {
             minioClient.removeObject(RemoveObjectArgs
                     .builder()
-                    .bucket("user-files")
+                    .bucket(bucketName)
                     .object(itemName)
                     .build());
         }
@@ -97,20 +101,20 @@ public class MinIoService {
     public void renameItem(String S3UserItemsPath, String oldItemName, String newItemName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs
                 .builder()
-                .bucket("user-files")
+                .bucket(bucketName)
                 .prefix(oldItemName)
                 .recursive(true)
                 .build());
         for (Result<Item> result : results) {
             Item item = result.get();
             StatObjectResponse stat = minioClient.statObject(StatObjectArgs.builder()
-                    .bucket("user-files")
+                    .bucket(bucketName)
                     .object(item.objectName())
                     .build());
 
             try (InputStream oldFileStream = minioClient.getObject(
                     GetObjectArgs.builder()
-                            .bucket("user-files")
+                            .bucket(bucketName)
                             .object(item.objectName())
                             .build()
             )){
@@ -120,7 +124,7 @@ public class MinIoService {
                 String res = newItemPath.endsWith("/") ? (newItemPath+"/"+currentFileName) : newItemPath;
 
                 minioClient.putObject(PutObjectArgs.builder()
-                        .bucket("user-files")
+                        .bucket(bucketName)
                         .object(res)
                         .stream(oldFileStream, stat.size(), -1)
                         .contentType(stat.contentType())
@@ -135,7 +139,7 @@ public class MinIoService {
 
         Iterable<Result<Item>> rootFolder = minioClient.listObjects(
                 ListObjectsArgs.builder()
-                        .bucket("user-files")
+                        .bucket(bucketName)
                         .prefix(S3UserItemsPath)
                         .build()
         );
@@ -162,7 +166,7 @@ public class MinIoService {
             if (item.objectName().endsWith("/")) {
                 Iterable<Result<Item>> nestedItems = minioClient.listObjects(
                         ListObjectsArgs.builder()
-                                .bucket("user-files")
+                                .bucket(bucketName)
                                 .prefix(item.objectName())
                                 .build());
                 traverseAndSearchBySuffix(nestedItems, searchResults, nameSuffix);
