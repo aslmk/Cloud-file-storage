@@ -1,0 +1,142 @@
+package com.aslmk.cloudfilestorage.s3;
+
+import com.aslmk.cloudfilestorage.dto.*;
+import com.aslmk.cloudfilestorage.exception.StorageException;
+import com.aslmk.cloudfilestorage.repository.MinioRepository;
+import com.aslmk.cloudfilestorage.dto.S3PathHelper;
+import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
+import io.minio.StatObjectResponse;
+import org.apache.coyote.BadRequestException;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class MinioServiceImpl implements StorageService {
+
+    private final StoragePathHelperUtil storagePathHelperUtil;
+    private final MinioRepository minioRepository;
+
+    public MinioServiceImpl(StoragePathHelperUtil storagePathHelperUtil, MinioRepository minioRepository) {
+        this.storagePathHelperUtil = storagePathHelperUtil;
+        this.minioRepository = minioRepository;
+    }
+    @Override
+    public void saveItem(UploadItemRequestDto item) throws BadRequestException {
+        for (MultipartFile multipartFile: item.getMultipartFiles()) {
+
+            if (multipartFile.getOriginalFilename() == null || multipartFile.getOriginalFilename().isBlank()) {
+                throw new BadRequestException("Upload failed: file or folder name is empty");
+            }
+
+            try (InputStream itemStream = multipartFile.getInputStream()) {
+
+                ObjectMetaDataDto objectMetaDataDto = ObjectMetaDataDto
+                        .builder()
+                        .contentType(multipartFile.getContentType())
+                        .size(multipartFile.getResource().contentLength())
+                        .build();
+
+                StorageObjectWithMetaDataDto storageObjectWithMetaDataDto = StorageObjectWithMetaDataDto
+                        .builder()
+                        .absolutePath(item.getParentPath()+multipartFile.getOriginalFilename())
+                        .inputStream(itemStream)
+                        .objectMetaData(objectMetaDataDto)
+                        .build();
+
+                minioRepository.saveItem(storageObjectWithMetaDataDto);
+
+            } catch (IOException e) {
+                throw new BadRequestException("Upload failed: " + e.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void renameItem(String oldItemName, String newItemName)  {
+        List<S3PathHelper> oldItemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(oldItemName, true);
+        for (S3PathHelper oldItemAbsolutePath : oldItemsAbsolutePath) {
+            StatObjectResponse minioOldItemMetaData = minioRepository.getItemMetaData(oldItemAbsolutePath.getAbsolutePath());
+            ObjectMetaDataDto oldObjectMetaDataDto = ObjectMetaDataDto
+                    .builder()
+                    .size(minioOldItemMetaData.size())
+                    .contentType(minioOldItemMetaData.contentType())
+                    .build();
+
+            try (InputStream oldItemStream = minioRepository.downloadItem(oldItemAbsolutePath.getAbsolutePath())) {
+                String newItemAbsolutePath = oldItemAbsolutePath.getAbsolutePath().replace(new S3PathHelper(oldItemName).getItemName(), newItemName);
+                StorageObjectWithMetaDataDto storageObjectWithMetaDataDto = StorageObjectWithMetaDataDto
+                        .builder()
+                        .absolutePath(newItemAbsolutePath)
+                        .inputStream(oldItemStream)
+                        .objectMetaData(oldObjectMetaDataDto)
+                        .build();
+
+                minioRepository.saveItem(storageObjectWithMetaDataDto);
+
+                removeItem(oldItemAbsolutePath.getAbsolutePath());
+            } catch (IOException e) {
+                throw new StorageException("Error while renaming items");
+            }
+        }
+    }
+
+    @Override
+    public void removeItem(String itemName) {
+        if (itemName.endsWith("/")) {
+            List<S3PathHelper> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(itemName, true);
+            for (S3PathHelper itemAbsolutePath : itemsAbsolutePath) {
+                minioRepository.removeItem(itemAbsolutePath.getAbsolutePath());
+            }
+        } else {
+            minioRepository.removeItem(itemName);
+        }
+    }
+
+    @Override
+    public List<SearchResultsDto> searchItem(String S3UserItemsPath, String query) {
+        List<SearchResultsDto> searchResults = new ArrayList<>();
+        List<S3PathHelper> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(S3UserItemsPath, true);
+        traverseAndSearchBySuffix(itemsAbsolutePath, searchResults, query);
+        return searchResults;
+    }
+
+    @Override
+    public List<S3ItemInfoDto> getAllItems(String S3UserItemsPath) {
+        List<S3ItemInfoDto> items = new ArrayList<>();
+
+        List<S3PathHelper> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(S3UserItemsPath, false);
+
+        for (S3PathHelper itemAbsolutePath : itemsAbsolutePath) {
+            String itemName = itemAbsolutePath.getItemName();
+
+            S3ItemInfoDto itemInfo = S3ItemInfoDto.builder()
+                    .itemName(itemName)
+                    .absolutePath(itemAbsolutePath.getAbsolutePath())
+                    .isDirectory(itemAbsolutePath.isDirectory())
+                    .build();
+            items.add(itemInfo);
+        }
+
+        return items;
+    }
+
+    private void traverseAndSearchBySuffix(List<S3PathHelper> itemsAbsolutePath, List<SearchResultsDto> searchResults, String nameSuffix) {
+        for (S3PathHelper itemAbsolutePath : itemsAbsolutePath) {
+            if (itemAbsolutePath.getItemName().equals(nameSuffix)) {
+                SearchResultsDto searchResult = SearchResultsDto.builder()
+                        .itemName(nameSuffix)
+                        .displayPath(itemAbsolutePath.getParentPath())
+                        .absolutePath(itemAbsolutePath.getAbsolutePath())
+                        .isDirectory(itemAbsolutePath.isDirectory())
+                        .build();
+                searchResults.add(searchResult);
+            }
+        }
+    }
+
+}

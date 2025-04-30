@@ -1,8 +1,7 @@
 package com.aslmk.cloudfilestorage.dto;
 
 import lombok.*;
-
-import java.io.InputStream;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -10,7 +9,6 @@ import java.io.InputStream;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UploadItemRequestDto {
-    private String itemName;
-    private InputStream itemInputStream;
-    private String absolutePath;
+    private MultipartFile[] multipartFiles;
+    private String parentPath;
 }
