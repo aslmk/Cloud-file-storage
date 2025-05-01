@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/auth")
@@ -50,7 +52,8 @@ public class AuthController {
                         BindingResult bindingResult,
                         HttpServletRequest request,
                         HttpServletResponse response,
-                        HttpSession session) {
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             return "login";
@@ -60,17 +63,18 @@ public class AuthController {
                 .unauthenticated(loginDto.getUsername(), loginDto.getPassword()
         );
 
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
-        if (authentication.isAuthenticated()) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
             SecurityContext context = securityContextHolderStrategy.createEmptyContext();
             context.setAuthentication(authentication);
             securityContextHolderStrategy.setContext(context);
             securityContextRepository.saveContext(context, request, response);
             session.setAttribute("username", loginDto.getUsername());
             return "redirect:/home";
+        } catch (AuthenticationException e) {
+            redirectAttributes.addFlashAttribute("error", "Invalid username or password");
+            return "redirect:/auth/login";
         }
-        return "login";
     }
 
     @GetMapping("/register")
@@ -82,14 +86,16 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("user") RegisterDto registerDto,
-                           BindingResult bindingResult) {
+                           BindingResult bindingResult,
+                           RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             return "register";
         }
 
         if (!registerDto.getPassword().equals(registerDto.getPasswordMatch())) {
-            return "redirect:/auth/register?error";
+            redirectAttributes.addFlashAttribute("error", "Passwords do not match");
+            return "redirect:/auth/register";
         }
 
         userService.saveUser(registerDto);
