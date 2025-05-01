@@ -1,6 +1,5 @@
 package com.aslmk.cloudfilestorage.exception;
 
-import io.minio.errors.*;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,10 +8,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.NoHandlerFoundException;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,18 +40,10 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler({ServerException.class,
-            InsufficientDataException.class,
-            ErrorResponseException.class,
-            IOException.class,
-            NoSuchAlgorithmException.class,
-            InvalidKeyException.class,
-            InvalidResponseException.class,
-            XmlParserException.class,
-            InternalException.class})
+    @ExceptionHandler(StorageException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public String minioExceptionHandler(Model model) {
-        handleException("Storage error. Try again",
+    public String minioExceptionHandler(StorageException e, Model model) {
+        handleException(e.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 model);
         return "error";
