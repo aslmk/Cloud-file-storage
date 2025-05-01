@@ -45,18 +45,10 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler({ServerException.class,
-            InsufficientDataException.class,
-            ErrorResponseException.class,
-            IOException.class,
-            NoSuchAlgorithmException.class,
-            InvalidKeyException.class,
-            InvalidResponseException.class,
-            XmlParserException.class,
-            InternalException.class})
+    @ExceptionHandler(StorageException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public String minioExceptionHandler(Model model) {
-        handleException("Storage error. Try again",
+    public String minioExceptionHandler(StorageException e, Model model) {
+        handleException(e.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 model);
         return "error";
