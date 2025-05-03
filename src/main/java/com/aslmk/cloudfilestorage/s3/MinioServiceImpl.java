@@ -13,7 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class MinioServiceImpl implements StorageService {
@@ -98,7 +100,7 @@ public class MinioServiceImpl implements StorageService {
     }
 
     @Override
-    public List<SearchResultsDto> searchItem(String S3UserItemsPath, String query) {
+    public List<SearchResultsDto> searchItem(String query, String S3UserItemsPath) {
         List<SearchResultsDto> searchResults = new ArrayList<>();
         List<S3PathHelper> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(S3UserItemsPath, true);
         traverseAndSearchBySuffix(itemsAbsolutePath, searchResults, query);
@@ -126,8 +128,12 @@ public class MinioServiceImpl implements StorageService {
     }
 
     private void traverseAndSearchBySuffix(List<S3PathHelper> itemsAbsolutePath, List<SearchResultsDto> searchResults, String nameSuffix) {
+        Set<String> seenFolders = new HashSet<>();
         for (S3PathHelper itemAbsolutePath : itemsAbsolutePath) {
-            if (itemAbsolutePath.getItemName().equals(nameSuffix)) {
+            boolean isMatch = itemAbsolutePath.getItemName().equals(nameSuffix) ||
+                    itemAbsolutePath.getParentPath().endsWith(nameSuffix);
+            if (isMatch && seenFolders.add(itemAbsolutePath.getParentPath())) {
+                seenFolders.add(itemAbsolutePath.getParentPath());
                 SearchResultsDto searchResult = SearchResultsDto.builder()
                         .itemName(nameSuffix)
                         .displayPath(itemAbsolutePath.getParentPath())

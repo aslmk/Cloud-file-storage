@@ -28,7 +28,7 @@ public class SearchController {
                              HttpSession session) {
         UserEntity userEntity = userSessionUtils.getUserFromSession(session);
         String S3UserItemsPath = String.format("user-%s-files/", userEntity.getId());
-        if (query != null && !query.trim().isEmpty() && !query.equals("/")) {
+        if (query != null && !query.trim().isEmpty()) {
             List<SearchResultsDto> searchResults = storageService.searchItem(query, S3UserItemsPath);
             model.addAttribute("searchResults", searchResults);
         }

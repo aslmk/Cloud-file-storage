@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class StoragePathHelperUtil {
@@ -26,6 +28,7 @@ public class StoragePathHelperUtil {
     public List<S3PathHelper> getItemsAbsolutePath(String folder, boolean recursively) {
         try {
             List<S3PathHelper> items = new ArrayList<>();
+            Set<String> folders = new HashSet<>();
 
             Iterable<Result<Item>> results = minioRepository.getStorageObjectsList(folder, recursively);
 
@@ -33,7 +36,19 @@ public class StoragePathHelperUtil {
                 Item item = result.get();
                 String absolutePath = item.objectName();
                 items.add(new S3PathHelper(absolutePath));
+
+                String[] parts = absolutePath.split("/");
+                StringBuilder currentPath = new StringBuilder();
+                for (int i = 0; i < parts.length - 1; i++) {
+                    currentPath.append(parts[i]).append("/");
+                    folders.add(currentPath.toString());
+                }
             }
+
+            for (String folderPath : folders) {
+                items.add(new S3PathHelper(folderPath));
+            }
+
             return items;
         } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
                  NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
