@@ -27,9 +27,28 @@ public class S3PathHelper {
         return itemName;
     }
 
-    public String buildNewPath(String newItemName) {
-        String oldItemNameFromAbsolutePath = getItemName();
-        return absolutePath.replace(oldItemNameFromAbsolutePath, newItemName);
+    public String getLastFolderName() {
+        String parentPath = getParentPath();
+        if (parentPath.isEmpty()) {
+            return "";
+        }
+        int lastSlashIndex = parentPath.lastIndexOf("/", parentPath.length() - 2);
+        if (lastSlashIndex == -1) {
+            return parentPath;
+        }
+        return parentPath.substring(lastSlashIndex + 1);
+    }
+
+    public String buildNewPath(boolean isFolderRename , String newItemName) {
+        if (isFolderRename) {
+            String parentPath = getParentPath();
+            String oldFolderName = parentPath.substring(parentPath.lastIndexOf('/', parentPath.length() - 2) + 1, parentPath.length() - 1);
+            String grandParentPath = parentPath.substring(0, parentPath.lastIndexOf(oldFolderName + '/'));
+            String fileName = absolutePath.substring(parentPath.length());
+            return grandParentPath + newItemName + fileName;
+        } else {
+            return getParentPath() + newItemName;
+        }
     }
 
     public String getAbsolutePath() {

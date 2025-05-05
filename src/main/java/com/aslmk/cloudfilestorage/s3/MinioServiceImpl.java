@@ -70,7 +70,7 @@ public class MinioServiceImpl implements StorageService {
                     .build();
 
             try (InputStream oldItemStream = minioRepository.downloadItem(oldItemAbsolutePath.getAbsolutePath())) {
-                String newItemAbsolutePath = oldItemAbsolutePath.getAbsolutePath().replace(new S3PathHelper(oldItemName).getItemName(), newItemName);
+                String newItemAbsolutePath = oldItemAbsolutePath.buildNewPath(oldItemName.endsWith("/"), newItemName);
                 StorageObjectWithMetaDataDto storageObjectWithMetaDataDto = StorageObjectWithMetaDataDto
                         .builder()
                         .absolutePath(newItemAbsolutePath)
@@ -100,11 +100,42 @@ public class MinioServiceImpl implements StorageService {
     }
 
     @Override
-    public List<SearchResultsDto> searchItem(String query, String S3UserItemsPath) {
-        List<SearchResultsDto> searchResults = new ArrayList<>();
-        List<S3PathHelper> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(S3UserItemsPath, true);
-        traverseAndSearchBySuffix(itemsAbsolutePath, searchResults, query);
-        return searchResults;
+    public List<SearchResultsDto> searchItem(String query, String userRootPath) {
+        List<S3PathHelper> allItems = storagePathHelperUtil.getItemsAbsolutePath(userRootPath, true);
+        return filterMatchingItems(allItems, query);
+    }
+
+    private List<SearchResultsDto> filterMatchingItems(List<S3PathHelper> allItems, String query) {
+        String normalizedQuery = query.endsWith("/") ? query.substring(0, query.length() - 1) : query;
+        Set<String> seenPaths = new HashSet<>();
+        List<SearchResultsDto> results = new ArrayList<>();
+        for (S3PathHelper item : allItems) {
+            String itemName = item.getItemName();
+            String absolutePath = item.getAbsolutePath();
+            String parentPath = item.getParentPath();
+            boolean isDir = query.endsWith("/");
+            boolean nameMatches = itemName.contains(normalizedQuery);
+            boolean parentMatches = isDir && item.getLastFolderName().contains(normalizedQuery);
+
+            if (nameMatches && seenPaths.add(absolutePath)) {
+                results.add(buildResult(itemName, absolutePath, isDir));
+            }
+
+            if (parentMatches && seenPaths.add(parentPath)) {
+                String folderName = storagePathHelperUtil.extractFolderName(parentPath);
+                results.add(buildResult(folderName, parentPath, true));
+            }
+        }
+
+        return results;
+    }
+    private SearchResultsDto buildResult(String name, String path, boolean isDirectory) {
+        return SearchResultsDto.builder()
+                .itemName(name)
+                .displayPath(path)
+                .absolutePath(path)
+                .isDirectory(isDirectory)
+                .build();
     }
 
     @Override
@@ -126,23 +157,4 @@ public class MinioServiceImpl implements StorageService {
 
         return items;
     }
-
-    private void traverseAndSearchBySuffix(List<S3PathHelper> itemsAbsolutePath, List<SearchResultsDto> searchResults, String nameSuffix) {
-        Set<String> seenFolders = new HashSet<>();
-        for (S3PathHelper itemAbsolutePath : itemsAbsolutePath) {
-            boolean isMatch = itemAbsolutePath.getItemName().equals(nameSuffix) ||
-                    itemAbsolutePath.getParentPath().endsWith(nameSuffix);
-            if (isMatch && seenFolders.add(itemAbsolutePath.getParentPath())) {
-                seenFolders.add(itemAbsolutePath.getParentPath());
-                SearchResultsDto searchResult = SearchResultsDto.builder()
-                        .itemName(nameSuffix)
-                        .displayPath(itemAbsolutePath.getParentPath())
-                        .absolutePath(itemAbsolutePath.getAbsolutePath())
-                        .isDirectory(itemAbsolutePath.isDirectory())
-                        .build();
-                searchResults.add(searchResult);
-            }
-        }
-    }
-
 }
