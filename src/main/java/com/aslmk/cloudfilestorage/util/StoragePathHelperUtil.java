@@ -1,6 +1,6 @@
 package com.aslmk.cloudfilestorage.util;
 
-import com.aslmk.cloudfilestorage.dto.S3PathHelper;
+import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.exception.StorageException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
 import io.minio.Result;
@@ -23,16 +23,16 @@ public class StoragePathHelperUtil {
         this.minioRepository = minioRepository;
     }
 
-    public List<S3PathHelper> getItemsAbsolutePath(String folder, boolean recursively) {
+    public List<S3Path> getItemsAbsolutePath(String folder, boolean recursively) {
         try {
-            List<S3PathHelper> items = new ArrayList<>();
+            List<S3Path> items = new ArrayList<>();
 
             Iterable<Result<Item>> results = minioRepository.getStorageObjectsList(folder, recursively);
 
             for (Result<Item> result : results) {
                 Item item = result.get();
                 String absolutePath = item.objectName();
-                items.add(new S3PathHelper(absolutePath));
+                items.add(new S3Path(absolutePath));
 
             }
 

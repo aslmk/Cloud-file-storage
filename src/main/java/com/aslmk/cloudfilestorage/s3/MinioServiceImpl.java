@@ -3,7 +3,7 @@ package com.aslmk.cloudfilestorage.s3;
 import com.aslmk.cloudfilestorage.dto.*;
 import com.aslmk.cloudfilestorage.exception.StorageException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
-import com.aslmk.cloudfilestorage.dto.S3PathHelper;
+import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
 import io.minio.StatObjectResponse;
 import org.apache.coyote.BadRequestException;
@@ -60,8 +60,8 @@ public class MinioServiceImpl implements StorageService {
 
     @Override
     public void renameItem(String oldItemName, String newItemName)  {
-        List<S3PathHelper> oldItemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(oldItemName, true);
-        for (S3PathHelper oldItemAbsolutePath : oldItemsAbsolutePath) {
+        List<S3Path> oldItemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(oldItemName, true);
+        for (S3Path oldItemAbsolutePath : oldItemsAbsolutePath) {
             StatObjectResponse minioOldItemMetaData = minioRepository.getItemMetaData(oldItemAbsolutePath.getAbsolutePath());
             ObjectMetaDataDto oldObjectMetaDataDto = ObjectMetaDataDto
                     .builder()
@@ -90,8 +90,8 @@ public class MinioServiceImpl implements StorageService {
     @Override
     public void removeItem(String itemName) {
         if (itemName.endsWith("/")) {
-            List<S3PathHelper> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(itemName, true);
-            for (S3PathHelper itemAbsolutePath : itemsAbsolutePath) {
+            List<S3Path> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(itemName, true);
+            for (S3Path itemAbsolutePath : itemsAbsolutePath) {
                 minioRepository.removeItem(itemAbsolutePath.getAbsolutePath());
             }
         } else {
@@ -101,15 +101,15 @@ public class MinioServiceImpl implements StorageService {
 
     @Override
     public List<SearchResultsDto> searchItem(String query, String userRootPath) {
-        List<S3PathHelper> allItems = storagePathHelperUtil.getItemsAbsolutePath(userRootPath, true);
+        List<S3Path> allItems = storagePathHelperUtil.getItemsAbsolutePath(userRootPath, true);
         return filterMatchingItems(allItems, query);
     }
 
-    private List<SearchResultsDto> filterMatchingItems(List<S3PathHelper> allItems, String query) {
+    private List<SearchResultsDto> filterMatchingItems(List<S3Path> allItems, String query) {
         String normalizedQuery = query.endsWith("/") ? query.substring(0, query.length() - 1) : query;
         Set<String> seenPaths = new HashSet<>();
         List<SearchResultsDto> results = new ArrayList<>();
-        for (S3PathHelper item : allItems) {
+        for (S3Path item : allItems) {
             String itemName = item.getItemName();
             String absolutePath = item.getAbsolutePath();
             String parentPath = item.getParentPath();
@@ -142,9 +142,9 @@ public class MinioServiceImpl implements StorageService {
     public List<S3ItemInfoDto> getAllItems(String S3UserItemsPath) {
         List<S3ItemInfoDto> items = new ArrayList<>();
 
-        List<S3PathHelper> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(S3UserItemsPath, false);
+        List<S3Path> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(S3UserItemsPath, false);
 
-        for (S3PathHelper itemAbsolutePath : itemsAbsolutePath) {
+        for (S3Path itemAbsolutePath : itemsAbsolutePath) {
             String itemName = itemAbsolutePath.getItemName();
 
             S3ItemInfoDto itemInfo = S3ItemInfoDto.builder()
