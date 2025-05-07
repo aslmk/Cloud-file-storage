@@ -33,7 +33,6 @@ public class UserServiceImpl implements UserService {
             UserEntity userEntity = UserEntity.builder()
                     .username(user.getUsername())
                     .password(passwordEncoder.encode(user.getPassword()))
-                    .enabled(true)
                     .build();
             userRepository.save(userEntity);
         } catch (DataIntegrityViolationException e) {
@@ -71,7 +70,6 @@ public class UserServiceImpl implements UserService {
                 .username(userEntity.getUsername())
                 .password(userEntity.getPassword())
                 .roles("USER")
-                .disabled(!userEntity.getEnabled())
                 .build();
     }
 }
