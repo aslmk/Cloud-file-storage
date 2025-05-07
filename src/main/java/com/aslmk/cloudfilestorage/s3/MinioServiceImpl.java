@@ -118,22 +118,22 @@ public class MinioServiceImpl implements StorageService {
             boolean parentMatches = isDir && item.getLastFolderName().contains(normalizedQuery);
 
             if (nameMatches && seenPaths.add(absolutePath)) {
-                results.add(buildResult(itemName, absolutePath, isDir));
+                results.add(buildResult(itemName, absolutePath, parentPath, isDir));
             }
 
             if (parentMatches && seenPaths.add(parentPath)) {
                 String folderName = storagePathHelperUtil.extractFolderName(parentPath);
-                results.add(buildResult(folderName, parentPath, true));
+                results.add(buildResult(folderName, parentPath, parentPath, true));
             }
         }
 
         return results;
     }
-    private SearchResultsDto buildResult(String name, String path, boolean isDirectory) {
+    private SearchResultsDto buildResult(String name, String absolutePath, String displayPath, boolean isDirectory) {
         return SearchResultsDto.builder()
                 .itemName(name)
-                .displayPath(path)
-                .absolutePath(path)
+                .displayPath(displayPath)
+                .absolutePath(absolutePath)
                 .isDirectory(isDirectory)
                 .build();
     }
