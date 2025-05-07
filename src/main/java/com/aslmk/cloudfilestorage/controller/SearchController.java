@@ -3,6 +3,7 @@ package com.aslmk.cloudfilestorage.controller;
 import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
 import com.aslmk.cloudfilestorage.entity.UserEntity;
 import com.aslmk.cloudfilestorage.s3.StorageService;
+import com.aslmk.cloudfilestorage.util.StorageInputValidator;
 import com.aslmk.cloudfilestorage.util.UserSessionUtils;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -28,7 +29,7 @@ public class SearchController {
                              HttpSession session) {
         UserEntity userEntity = userSessionUtils.getUserFromSession(session);
         String S3UserItemsPath = String.format("user-%s-files/", userEntity.getId());
-        if (query != null && !query.trim().isEmpty()) {
+        if (StorageInputValidator.isSearchQueryValid(query)) {
             List<SearchResultsDto> searchResults = storageService.searchItem(query, S3UserItemsPath);
             model.addAttribute("searchResults", searchResults);
         }

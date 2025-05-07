@@ -4,7 +4,7 @@ import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.dto.UploadItemRequestDto;
 import com.aslmk.cloudfilestorage.entity.UserEntity;
 import com.aslmk.cloudfilestorage.s3.StorageService;
-import com.aslmk.cloudfilestorage.util.StorageItemValidator;
+import com.aslmk.cloudfilestorage.util.StorageInputValidator;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
 import com.aslmk.cloudfilestorage.util.UserPathResolver;
 import com.aslmk.cloudfilestorage.util.UserSessionUtils;
@@ -27,14 +27,12 @@ public class HomeController {
     private final UserSessionUtils userSessionUtils;
     private final StorageService storageService;
     private final UserPathResolver userPathResolver;
-    private final StorageItemValidator storageItemValidator;
     private final StoragePathHelperUtil storagePathHelperUtil;
 
-    public HomeController(UserSessionUtils userSessionUtils, StorageService storageService, UserPathResolver userPathResolver, StorageItemValidator storageItemValidator, StoragePathHelperUtil storagePathHelperUtil) {
+    public HomeController(UserSessionUtils userSessionUtils, StorageService storageService, UserPathResolver userPathResolver, StoragePathHelperUtil storagePathHelperUtil) {
         this.userSessionUtils = userSessionUtils;
         this.storageService = storageService;
         this.userPathResolver = userPathResolver;
-        this.storageItemValidator = storageItemValidator;
         this.storagePathHelperUtil = storagePathHelperUtil;
     }
 
@@ -97,7 +95,7 @@ public class HomeController {
         UserEntity userEntity = userSessionUtils.getUserFromSession(session);
         String S3UserItemsPath = userPathResolver.resolveUserS3Path(path, userEntity.getId());
 
-        storageItemValidator.isNewItemNameCorrect(newItemName);
+        StorageInputValidator.validateItemName(newItemName);
         newItemName = storagePathHelperUtil.normalizeS3ObjectName(oldItemName, newItemName);
 
         storageService.renameItem(oldItemName, newItemName);
