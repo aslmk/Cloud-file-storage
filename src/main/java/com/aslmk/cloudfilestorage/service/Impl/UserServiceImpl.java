@@ -4,6 +4,7 @@ import com.aslmk.cloudfilestorage.dto.RegisterDto;
 import com.aslmk.cloudfilestorage.entity.UserEntity;
 import com.aslmk.cloudfilestorage.exception.ServiceException;
 import com.aslmk.cloudfilestorage.exception.UserAlreadyExistsException;
+import com.aslmk.cloudfilestorage.mapper.UserMapper;
 import com.aslmk.cloudfilestorage.repository.UserRepository;
 import com.aslmk.cloudfilestorage.service.UserService;
 import org.hibernate.exception.ConstraintViolationException;
@@ -21,20 +22,19 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     @Override
     public void saveUser(RegisterDto user) throws UserAlreadyExistsException, ServiceException {
         try {
-            UserEntity userEntity = UserEntity.builder()
-                    .username(user.getUsername())
-                    .password(passwordEncoder.encode(user.getPassword()))
-                    .build();
-            userRepository.save(userEntity);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(userMapper.mapToUserEntity(user));
         } catch (DataIntegrityViolationException e) {
             if (e.getCause() instanceof ConstraintViolationException cve) {
                  String constraintName = cve.getConstraintName();
