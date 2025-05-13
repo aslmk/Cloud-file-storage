@@ -5,7 +5,6 @@ import com.aslmk.cloudfilestorage.exception.StorageException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
 import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
-import io.minio.StatObjectResponse;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,12 +61,7 @@ public class MinioServiceImpl implements StorageService {
     public void renameItem(String oldItemName, String newItemName)  {
         List<S3Path> oldItemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(oldItemName, true);
         for (S3Path oldItemAbsolutePath : oldItemsAbsolutePath) {
-            StatObjectResponse minioOldItemMetaData = minioRepository.getItemMetaData(oldItemAbsolutePath.getAbsolutePath());
-            ObjectMetaDataDto oldObjectMetaDataDto = ObjectMetaDataDto
-                    .builder()
-                    .size(minioOldItemMetaData.size())
-                    .contentType(minioOldItemMetaData.contentType())
-                    .build();
+            ObjectMetaDataDto oldItemMetaData = minioRepository.getItemMetadata(oldItemAbsolutePath.getAbsolutePath());
 
             try (InputStream oldItemStream = minioRepository.downloadItem(oldItemAbsolutePath.getAbsolutePath())) {
                 String newItemAbsolutePath = oldItemAbsolutePath.buildNewPath(oldItemName.endsWith("/"), newItemName);
@@ -75,7 +69,7 @@ public class MinioServiceImpl implements StorageService {
                         .builder()
                         .absolutePath(newItemAbsolutePath)
                         .inputStream(oldItemStream)
-                        .objectMetaData(oldObjectMetaDataDto)
+                        .objectMetaData(oldItemMetaData)
                         .build();
 
                 minioRepository.saveItem(storageObjectWithMetaDataDto);
