@@ -116,7 +116,7 @@ public class MinioServiceImpl implements StorageService {
             }
 
             if (parentMatches && seenPaths.add(parentPath)) {
-                String folderName = storagePathHelperUtil.extractFolderName(parentPath);
+                String folderName = item.getLastFolderName();
                 results.add(buildResult(folderName, parentPath, parentPath, true));
             }
         }

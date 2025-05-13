@@ -52,10 +52,4 @@ public class StoragePathHelperUtil {
         return newItemName;
     }
 
-    public String extractFolderName(String folderPath) {
-        String trimmed = folderPath.endsWith("/") ? folderPath.substring(0, folderPath.length() - 1) : folderPath;
-        int lastSlash = trimmed.lastIndexOf('/');
-        return lastSlash >= 0 ? trimmed.substring(lastSlash + 1) : trimmed;
-    }
-
 }
