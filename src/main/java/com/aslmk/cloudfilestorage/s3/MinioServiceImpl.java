@@ -140,15 +140,20 @@ public class MinioServiceImpl implements StorageService {
 
         for (S3Path itemAbsolutePath : itemsAbsolutePath) {
             String itemName = itemAbsolutePath.getItemName();
-
+            String pathWithoutUserRootFolder = excludeRootUserFolderFromItemAbsolutePath(
+                    itemAbsolutePath.getAbsolutePath()
+            );
             S3ItemInfoDto itemInfo = S3ItemInfoDto.builder()
                     .itemName(itemName)
-                    .absolutePath(itemAbsolutePath.getAbsolutePath())
+                    .absolutePath(pathWithoutUserRootFolder)
                     .isDirectory(itemAbsolutePath.isDirectory())
                     .build();
             items.add(itemInfo);
         }
 
         return items;
+    }
+    private String excludeRootUserFolderFromItemAbsolutePath(String itemAbsolutePath) {
+        return itemAbsolutePath.substring(itemAbsolutePath.indexOf("/")+1);
     }
 }

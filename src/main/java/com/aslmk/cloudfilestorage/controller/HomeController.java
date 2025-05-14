@@ -16,10 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Controller
@@ -41,13 +38,7 @@ public class HomeController {
                            Model model,
                            HttpSession session) {
         UserEntity userEntity = userSessionUtils.getUserFromSession(session);
-
-        String S3UserItemsPath = String.format("user-%s-files/", userEntity.getId());
-        if (path != null && !path.isEmpty()) {
-            S3UserItemsPath = UriComponentsBuilder.fromUriString(path)
-                    .build()
-                    .getPath();
-        }
+        String S3UserItemsPath = userPathResolver.resolveUserS3Path(path, userEntity.getId());
         List<S3ItemInfoDto> userItems = storageService.getAllItems(S3UserItemsPath);
         model.addAttribute("userItems", userItems);
 
@@ -70,20 +61,21 @@ public class HomeController {
                 .build();
 
         storageService.saveItem(uploadItemRequestDto);
-
-        return "redirect:/home?path="+ URLEncoder.encode(S3UserItemsPath, StandardCharsets.UTF_8);
+        String encodedPath = userPathResolver.encodeUserS3Path(path, userEntity.getId());
+        return "redirect:/home?path="+ encodedPath;
     }
     @PostMapping("/remove")
     public String removeItem(@RequestParam("itemAbsolutePath") String itemAbsolutePath,
                              HttpSession session,
                              @RequestParam(value = "path", required = false) String path) {
-
         UserEntity userEntity = userSessionUtils.getUserFromSession(session);
-        String S3UserItemsPath = userPathResolver.resolveUserS3Path(path, userEntity.getId());
-        storageService.removeItem(itemAbsolutePath);
+        String userRootFolder = userPathResolver.getUserRootFolder(userEntity.getId());
+        String normalizedItemAbsolutePath = userRootFolder + itemAbsolutePath;
 
+        storageService.removeItem(normalizedItemAbsolutePath);
 
-        return "redirect:/home?path=" + URLEncoder.encode(S3UserItemsPath, StandardCharsets.UTF_8);
+        String encodedPath = userPathResolver.encodeUserS3Path(path, userEntity.getId());
+        return "redirect:/home?path=" + encodedPath;
     }
 
     @PostMapping("/rename")
@@ -92,14 +84,17 @@ public class HomeController {
             @RequestParam("oldItemName") String oldItemName,
             @RequestParam("newItemName") String newItemName,
             HttpSession session) throws BadRequestException {
-        UserEntity userEntity = userSessionUtils.getUserFromSession(session);
-        String S3UserItemsPath = userPathResolver.resolveUserS3Path(path, userEntity.getId());
-
         StorageInputValidator.validateItemName(newItemName);
-        newItemName = storagePathHelperUtil.normalizeS3ObjectName(oldItemName, newItemName);
 
-        storageService.renameItem(oldItemName, newItemName);
-        return "redirect:/home?path=" + URLEncoder.encode(S3UserItemsPath, StandardCharsets.UTF_8);
+        UserEntity userEntity = userSessionUtils.getUserFromSession(session);
+        String userRootFolder = userPathResolver.getUserRootFolder(userEntity.getId());
+        String normalizedOldItemAbsolutePath = userRootFolder + oldItemName;
+        newItemName = storagePathHelperUtil.normalizeS3ObjectName(normalizedOldItemAbsolutePath, newItemName);
+
+        storageService.renameItem(normalizedOldItemAbsolutePath, newItemName);
+
+        String encodedPath = userPathResolver.encodeUserS3Path(path, userEntity.getId());
+        return "redirect:/home?path=" + encodedPath;
     }
 
 }
