@@ -67,7 +67,7 @@ public class MinioRepository {
             throw new StorageException("Error while removing data from storage");
         }
     }
-    public Iterable<Result<Item>> getStorageObjectsList(String folder, boolean recursively) {
+    public Iterable<Result<Item>> listItems(String folder, boolean recursively) {
         return minioClient.listObjects(ListObjectsArgs
                 .builder()
                 .bucket(bucketName)

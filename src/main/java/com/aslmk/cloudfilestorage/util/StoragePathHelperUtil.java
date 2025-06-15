@@ -27,7 +27,7 @@ public class StoragePathHelperUtil {
         try {
             List<S3Path> items = new ArrayList<>();
 
-            Iterable<Result<Item>> results = minioRepository.getStorageObjectsList(folder, recursively);
+            Iterable<Result<Item>> results = minioRepository.listItems(folder, recursively);
 
             for (Result<Item> result : results) {
                 Item item = result.get();
