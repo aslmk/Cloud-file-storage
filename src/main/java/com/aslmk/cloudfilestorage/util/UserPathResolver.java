@@ -9,7 +9,9 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class UserPathResolver {
 
-        public String resolveUserS3Path(String path, long userId) {
+    private static final String USER_ROOT_FOLDER = "user-%d-files/";
+
+    public String resolveUserS3Path(String path, long userId) {
         String S3UserItemsPath = getUserRootFolder(userId);
         StringBuilder S3userPath = new StringBuilder(S3UserItemsPath);
         if (path != null && !path.isEmpty()) {
@@ -30,6 +32,6 @@ public class UserPathResolver {
     }
 
     public String getUserRootFolder(Long userId) {
-        return String.format("user-%s-files/", userId);
+        return String.format(USER_ROOT_FOLDER, userId);
     }
 }
