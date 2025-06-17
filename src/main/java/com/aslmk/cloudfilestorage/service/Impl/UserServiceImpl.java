@@ -6,10 +6,10 @@ import com.aslmk.cloudfilestorage.exception.ServiceException;
 import com.aslmk.cloudfilestorage.exception.UserAlreadyExistsException;
 import com.aslmk.cloudfilestorage.mapper.UserMapper;
 import com.aslmk.cloudfilestorage.repository.UserRepository;
+import com.aslmk.cloudfilestorage.security.CustomUserDetails;
 import com.aslmk.cloudfilestorage.service.UserService;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -62,14 +62,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity userEntity = findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(
-                String.format("User '%s' not found", username)
-        ));
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(String.format("User '%s' not found", username)));
 
-        return User.builder()
-                .username(userEntity.getUsername())
-                .password(userEntity.getPassword())
-                .roles("USER")
-                .build();
+        return new CustomUserDetails(user);
     }
 }

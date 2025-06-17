@@ -57,6 +57,13 @@ public class GlobalExceptionHandler {
         return "error";
     }
 
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public String unauthorizedAccessExceptionHandler(UnauthorizedAccessException e, Model model) {
+        handleException(e.getMessage(), HttpStatus.UNAUTHORIZED.value(), model);
+        return "error";
+    }
+
     private void handleException(String message, int statusCode, Model model) {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setMessage(message);

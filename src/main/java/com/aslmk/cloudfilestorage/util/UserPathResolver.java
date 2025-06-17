@@ -1,5 +1,9 @@
 package com.aslmk.cloudfilestorage.util;
 
+import com.aslmk.cloudfilestorage.exception.UnauthorizedAccessException;
+import com.aslmk.cloudfilestorage.security.CustomUserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.net.URLDecoder;
@@ -11,8 +15,8 @@ public class UserPathResolver {
 
     private static final String USER_ROOT_FOLDER = "user-%d-files/";
 
-    public String resolveUserS3Path(String path, long userId) {
-        String S3UserItemsPath = getUserRootFolder(userId);
+    public String resolveUserS3Path(String path) {
+        String S3UserItemsPath = getUserRootFolder();
         StringBuilder S3userPath = new StringBuilder(S3UserItemsPath);
         if (path != null && !path.isEmpty()) {
             String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
@@ -21,8 +25,8 @@ public class UserPathResolver {
         return S3userPath.toString();
     }
 
-    public String encodeUserS3Path(String path, Long userId) {
-        String userRootFolder = getUserRootFolder(userId);
+    public String encodeUserS3Path(String path) {
+        String userRootFolder = getUserRootFolder();
         if (path != null && !path.isEmpty()) {
             String res = path.replace(userRootFolder, "");
             return URLEncoder.encode(res, StandardCharsets.UTF_8);
@@ -31,7 +35,19 @@ public class UserPathResolver {
         }
     }
 
-    public String getUserRootFolder(Long userId) {
-        return String.format(USER_ROOT_FOLDER, userId);
+    public String getUserRootFolder() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("Unauthorized access");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof CustomUserDetails customUserDetails)) {
+            throw new IllegalStateException("Unexpected principal type: " + principal);
+        }
+
+        return String.format(USER_ROOT_FOLDER, customUserDetails.getUserEntity().getId());
     }
 }
