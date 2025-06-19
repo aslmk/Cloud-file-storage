@@ -31,10 +31,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveUser(RegisterDto user) throws UserAlreadyExistsException, ServiceException {
+    public UserEntity saveUser(RegisterDto user) throws UserAlreadyExistsException, ServiceException {
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            userRepository.save(userMapper.mapToUserEntity(user));
+            return userRepository.save(userMapper.mapToUserEntity(user));
         } catch (DataIntegrityViolationException e) {
             if (e.getCause() instanceof ConstraintViolationException cve) {
                  String constraintName = cve.getConstraintName();
@@ -48,10 +48,8 @@ public class UserServiceImpl implements UserService {
                              String.format("User %s already exists", user.getUsername())
                      );
                  }
-            } else {
-                throw new ServiceException("Unexpected error occurred while saving user: " + e.getMessage());
             }
-
+            throw new ServiceException("Unexpected error occurred while saving user: " + e.getMessage());
         }
     }
 

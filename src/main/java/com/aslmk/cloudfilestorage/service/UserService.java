@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface UserService extends UserDetailsService {
 
-    void saveUser(RegisterDto user);
+    UserEntity saveUser(RegisterDto user);
 
     Optional<UserEntity> findByUsername(String username);
 }
