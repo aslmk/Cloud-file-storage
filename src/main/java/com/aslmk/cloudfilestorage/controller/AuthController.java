@@ -5,9 +5,7 @@ import com.aslmk.cloudfilestorage.exception.AuthenticationFailedException;
 import com.aslmk.cloudfilestorage.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -38,7 +36,6 @@ public class AuthController {
                         BindingResult bindingResult,
                         HttpServletRequest request,
                         HttpServletResponse response,
-                        HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
@@ -47,7 +44,6 @@ public class AuthController {
 
         try {
             authService.authenticate(loginDto, request, response);
-            session.setAttribute("username", loginDto.getUsername());
             return "redirect:/home";
         } catch (AuthenticationFailedException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
