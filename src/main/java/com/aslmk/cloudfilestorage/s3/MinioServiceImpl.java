@@ -5,6 +5,7 @@ import com.aslmk.cloudfilestorage.exception.StorageException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
 import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
+import com.aslmk.cloudfilestorage.util.UserPathResolver;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,10 +22,12 @@ public class MinioServiceImpl implements StorageService {
 
     private final StoragePathHelperUtil storagePathHelperUtil;
     private final MinioRepository minioRepository;
+    private final UserPathResolver userPathResolver;
 
-    public MinioServiceImpl(StoragePathHelperUtil storagePathHelperUtil, MinioRepository minioRepository) {
+    public MinioServiceImpl(StoragePathHelperUtil storagePathHelperUtil, MinioRepository minioRepository, UserPathResolver userPathResolver) {
         this.storagePathHelperUtil = storagePathHelperUtil;
         this.minioRepository = minioRepository;
+        this.userPathResolver = userPathResolver;
     }
     @Override
     public void saveItem(UploadItemRequestDto item) throws BadRequestException {
@@ -112,22 +115,22 @@ public class MinioServiceImpl implements StorageService {
             boolean parentMatches = isDir && item.getLastFolderName().contains(normalizedQuery);
 
             if (nameMatches && seenPaths.add(absolutePath)) {
-                results.add(buildResult(itemName, absolutePath, parentPath, isDir));
+                results.add(buildResult(itemName, parentPath, isDir));
             }
 
             if (parentMatches && seenPaths.add(parentPath)) {
                 String folderName = item.getLastFolderName();
-                results.add(buildResult(folderName, parentPath, parentPath, true));
+                results.add(buildResult(folderName, parentPath, true));
             }
         }
 
         return results;
     }
-    private SearchResultsDto buildResult(String name, String absolutePath, String displayPath, boolean isDirectory) {
+    private SearchResultsDto buildResult(String name, String path, boolean isDirectory) {
+        String userRootFolder = userPathResolver.getUserRootFolder();
         return SearchResultsDto.builder()
                 .itemName(name)
-                .displayPath(displayPath)
-                .absolutePath(absolutePath)
+                .displayPath(path.equals(userRootFolder) ? "/" : path)
                 .isDirectory(isDirectory)
                 .build();
     }

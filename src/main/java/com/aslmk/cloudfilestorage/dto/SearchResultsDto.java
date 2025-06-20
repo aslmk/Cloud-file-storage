@@ -10,6 +10,5 @@ import lombok.*;
 public class SearchResultsDto {
     private String itemName;
     private String displayPath;
-    private String absolutePath;
     private boolean isDirectory;
 }

@@ -19,6 +19,9 @@ public class UserPathResolver {
         String S3UserItemsPath = getUserRootFolder();
         StringBuilder S3userPath = new StringBuilder(S3UserItemsPath);
         if (path != null && !path.isEmpty()) {
+            if (path.equals("/")) {
+                return S3UserItemsPath;
+            }
             String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
             S3userPath.append(decodedPath);
         }
