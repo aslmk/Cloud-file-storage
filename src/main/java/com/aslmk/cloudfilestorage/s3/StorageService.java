@@ -11,6 +11,6 @@ public interface StorageService {
     void saveItem(UploadItemRequestDto item) throws BadRequestException;
     void renameItem(String oldItemName, String newItemName);
     void removeItem(String itemName);
-    List<SearchResultsDto> searchItem(String S3UserItemsPath, String query);
+    List<SearchResultsDto> searchItem(String query);
     List<S3ItemInfoDto> getAllItems(String S3UserItemsPath);
 }

@@ -97,8 +97,9 @@ public class MinioServiceImpl implements StorageService {
     }
 
     @Override
-    public List<SearchResultsDto> searchItem(String query, String userRootPath) {
-        List<S3Path> allItems = storagePathHelperUtil.getItemsAbsolutePath(userRootPath, true);
+    public List<SearchResultsDto> searchItem(String query) {
+        String userRootFolder = userPathResolver.getUserRootFolder();
+        List<S3Path> allItems = storagePathHelperUtil.getItemsAbsolutePath(userRootFolder, true);
         return filterMatchingItems(allItems, query);
     }
 
