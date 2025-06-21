@@ -22,7 +22,8 @@ public class UserPathResolver {
             if (path.equals("/")) {
                 return S3UserItemsPath;
             }
-            String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+            String normalizedPath = path.replaceFirst("/", "");
+            String decodedPath = URLDecoder.decode(normalizedPath, StandardCharsets.UTF_8);
             S3userPath.append(decodedPath);
         }
         return S3userPath.toString();

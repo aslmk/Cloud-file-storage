@@ -129,9 +129,10 @@ public class MinioServiceImpl implements StorageService {
     }
     private SearchResultsDto buildResult(String name, String path, boolean isDirectory) {
         String userRootFolder = userPathResolver.getUserRootFolder();
+        String newPath = path.replace(userRootFolder, "/");
         return SearchResultsDto.builder()
                 .itemName(name)
-                .displayPath(path.equals(userRootFolder) ? "/" : path)
+                .displayPath(newPath)
                 .isDirectory(isDirectory)
                 .build();
     }
