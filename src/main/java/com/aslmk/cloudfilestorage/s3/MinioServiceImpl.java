@@ -115,11 +115,11 @@ public class MinioServiceImpl implements StorageService {
             boolean nameMatches = itemName.contains(normalizedQuery);
             boolean parentMatches = isDir && item.getLastFolderName().contains(normalizedQuery);
 
-            if (nameMatches && seenPaths.add(absolutePath)) {
-                results.add(buildResult(itemName, parentPath, isDir));
+            if (!isDir && nameMatches && seenPaths.add(absolutePath)) {
+                results.add(buildResult(itemName, parentPath, false));
             }
 
-            if (parentMatches && seenPaths.add(parentPath)) {
+            if (isDir && parentMatches && seenPaths.add(parentPath)) {
                 String folderName = item.getLastFolderName();
                 results.add(buildResult(folderName, parentPath, true));
             }
