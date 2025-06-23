@@ -26,6 +26,11 @@ public class UserPathResolver {
             String decodedPath = URLDecoder.decode(normalizedPath, StandardCharsets.UTF_8);
             S3userPath.append(decodedPath);
         }
+
+        if (S3userPath.lastIndexOf("/") != S3userPath.length() - 1) {
+            S3userPath.append("/");
+        }
+
         return S3userPath.toString();
     }
 

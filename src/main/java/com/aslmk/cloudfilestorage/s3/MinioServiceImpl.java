@@ -120,6 +120,11 @@ public class MinioServiceImpl implements StorageService {
             }
 
             if (isDir && parentMatches && seenPaths.add(parentPath)) {
+
+                if (userPathResolver.getUserRootFolder().equals(parentPath)) {
+                    continue;
+                }
+
                 String folderName = item.getLastFolderName();
                 results.add(buildResult(folderName, parentPath, true));
             }

@@ -96,7 +96,7 @@
                     queryInput.value = currentQuery+'/';
                 }
             } else if (filesRadio.checked) {
-                if (currentQuery.endsWith('/')) {
+                if (currentQuery.endsWith('/') && currentQuery.length > 1) {
                     queryInput.value = currentQuery.slice(0, -1);
                 }
             }
