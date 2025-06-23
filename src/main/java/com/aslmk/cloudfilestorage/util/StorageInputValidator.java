@@ -11,6 +11,6 @@ public final class StorageInputValidator {
     }
 
     public static boolean isSearchQueryValid(String query) {
-        return query == null || query.trim().isEmpty();
+        return !(query == null || query.trim().isEmpty());
     }
 }
