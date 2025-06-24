@@ -22,16 +22,18 @@ public class SearchController {
     @GetMapping("/search")
     public String searchItem(@RequestParam(value = "query", required = false) String query,
                              Model model) {
-        if (StorageInputValidator.isSearchQueryValid(query)) {
 
-            if (query.replaceAll("/+$", "").isEmpty()) {
-                model.addAttribute("searchResults", Collections.emptyList());
-                return "search-page";
-            }
-
-            List<SearchResultsDto> searchResults = storageService.searchItem(query);
-            model.addAttribute("searchResults", searchResults);
+        if (query == null) {
+            return "search-page";
         }
+
+        if (!StorageInputValidator.isSearchQueryValid(query)) {
+            model.addAttribute("searchResults", Collections.emptyList());
+            return "search-page";
+        }
+
+        List<SearchResultsDto> searchResults = storageService.searchItem(query);
+        model.addAttribute("searchResults", searchResults);
 
         return "search-page";
     }
