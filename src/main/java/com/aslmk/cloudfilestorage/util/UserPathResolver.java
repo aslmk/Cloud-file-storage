@@ -18,18 +18,19 @@ public class UserPathResolver {
     public String resolveUserS3Path(String path) {
         String S3UserItemsPath = getUserRootFolder();
         StringBuilder S3userPath = new StringBuilder(S3UserItemsPath);
-        if (path != null && !path.isEmpty()) {
-            if (path.equals("/")) {
-                return S3UserItemsPath;
-            }
-            String normalizedPath = path.replaceFirst("/", "");
-            String decodedPath = URLDecoder.decode(normalizedPath, StandardCharsets.UTF_8);
-            S3userPath.append(decodedPath);
+
+        if (path == null) {
+            return S3userPath.toString();
         }
 
-        if (S3userPath.lastIndexOf("/") != S3userPath.length() - 1) {
-            S3userPath.append("/");
+        String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+
+        if (decodedPath.replaceAll("/+$", "").trim().isEmpty()) {
+            return S3UserItemsPath;
         }
+
+        String normalizedPath = decodedPath.replaceAll("/+$", "/");
+        S3userPath.append(normalizedPath);
 
         return S3userPath.toString();
     }
