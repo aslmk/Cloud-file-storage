@@ -60,15 +60,10 @@ public class HomeController {
         return "redirect:/home?path="+ encodedPath;
     }
     @PostMapping("/remove")
-    public String removeItem(@RequestParam("itemAbsolutePath") String itemAbsolutePath,
-                             @RequestParam(value = "path", required = false) String path) {
-        String userRootFolder = userPathResolver.getUserRootFolder();
-        String normalizedItemAbsolutePath = userRootFolder + itemAbsolutePath;
-
-        storageService.removeItem(normalizedItemAbsolutePath);
-
-        String encodedPath = userPathResolver.encodeUserS3Path(path);
-        return "redirect:/home?path=" + encodedPath;
+    public String removeItem(@RequestParam(value = "path", required = false) String path) {
+        String itemFullPath = userPathResolver.getUserRootFolder()+path;
+        storageService.removeItem(itemFullPath);
+        return "redirect:/home";
     }
 
     @PostMapping("/rename")
