@@ -3,6 +3,7 @@ package com.aslmk.cloudfilestorage.controller;
 import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.dto.UploadItemRequestDto;
 import com.aslmk.cloudfilestorage.s3.StorageService;
+import com.aslmk.cloudfilestorage.service.DirectoryListingService;
 import com.aslmk.cloudfilestorage.util.StorageInputValidator;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
 import com.aslmk.cloudfilestorage.util.UserPathResolver;
@@ -21,23 +22,26 @@ public class HomeController {
     private final StorageService storageService;
     private final UserPathResolver userPathResolver;
     private final StoragePathHelperUtil storagePathHelperUtil;
+    private final DirectoryListingService directoryListingService;
 
-    public HomeController(StorageService storageService, UserPathResolver userPathResolver, StoragePathHelperUtil storagePathHelperUtil) {
+    public HomeController(StorageService storageService,
+                          UserPathResolver userPathResolver,
+                          StoragePathHelperUtil storagePathHelperUtil,
+                          DirectoryListingService directoryListingService) {
         this.storageService = storageService;
         this.userPathResolver = userPathResolver;
         this.storagePathHelperUtil = storagePathHelperUtil;
+        this.directoryListingService = directoryListingService;
     }
 
     @GetMapping("/home")
     public String homePage(@RequestParam(value = "path", required = false) String path,
                            Model model) {
         String S3UserItemsPath = userPathResolver.resolveUserS3Path(path);
-        List<S3ItemInfoDto> userItems = storageService.getAllItems(S3UserItemsPath);
+        List<S3ItemInfoDto> userItems = directoryListingService.listItems(S3UserItemsPath);
         model.addAttribute("userItems", userItems);
-
         return "home";
     }
-
 
     @PostMapping("/upload")
     public String uploadItem(@RequestParam("items") MultipartFile[] items,

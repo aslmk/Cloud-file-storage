@@ -1,33 +1,29 @@
 package com.aslmk.cloudfilestorage.s3;
 
-import com.aslmk.cloudfilestorage.dto.*;
+import com.aslmk.cloudfilestorage.dto.ObjectMetaDataDto;
+import com.aslmk.cloudfilestorage.dto.S3Path;
+import com.aslmk.cloudfilestorage.dto.StorageObjectWithMetaDataDto;
+import com.aslmk.cloudfilestorage.dto.UploadItemRequestDto;
 import com.aslmk.cloudfilestorage.exception.StorageException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
-import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
-import com.aslmk.cloudfilestorage.util.UserPathResolver;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class MinioServiceImpl implements StorageService {
 
     private final StoragePathHelperUtil storagePathHelperUtil;
     private final MinioRepository minioRepository;
-    private final UserPathResolver userPathResolver;
 
-    public MinioServiceImpl(StoragePathHelperUtil storagePathHelperUtil, MinioRepository minioRepository, UserPathResolver userPathResolver) {
+    public MinioServiceImpl(StoragePathHelperUtil storagePathHelperUtil, MinioRepository minioRepository) {
         this.storagePathHelperUtil = storagePathHelperUtil;
         this.minioRepository = minioRepository;
-        this.userPathResolver = userPathResolver;
     }
     @Override
     public void saveItem(UploadItemRequestDto item) throws BadRequestException {
@@ -94,76 +90,5 @@ public class MinioServiceImpl implements StorageService {
         } else {
             minioRepository.removeItem(itemName);
         }
-    }
-
-    @Override
-    public List<SearchResultsDto> searchItem(String query) {
-        String userRootFolder = userPathResolver.getUserRootFolder();
-        List<S3Path> allItems = storagePathHelperUtil.getItemsAbsolutePath(userRootFolder, true);
-        return filterMatchingItems(allItems, query);
-    }
-
-    private List<SearchResultsDto> filterMatchingItems(List<S3Path> allItems, String query) {
-        String normalizedQuery = query.endsWith("/") ? query.substring(0, query.length() - 1) : query;
-        Set<String> seenPaths = new HashSet<>();
-        List<SearchResultsDto> results = new ArrayList<>();
-        for (S3Path item : allItems) {
-            String itemName = item.getItemName();
-            String absolutePath = item.getAbsolutePath();
-            String parentPath = item.getParentPath();
-            boolean isDir = query.endsWith("/");
-            boolean nameMatches = itemName.contains(normalizedQuery);
-            boolean parentMatches = isDir && item.getLastFolderName().contains(normalizedQuery);
-
-            if (!isDir && nameMatches && seenPaths.add(absolutePath)) {
-                results.add(buildResult(itemName, parentPath, false));
-            }
-
-            if (isDir && parentMatches && seenPaths.add(parentPath)) {
-
-                if (userPathResolver.getUserRootFolder().equals(parentPath)) {
-                    continue;
-                }
-
-                String folderName = item.getLastFolderName();
-                results.add(buildResult(folderName, parentPath, true));
-            }
-        }
-
-        return results;
-    }
-    private SearchResultsDto buildResult(String name, String path, boolean isDirectory) {
-        String userRootFolder = userPathResolver.getUserRootFolder();
-        String newPath = path.replace(userRootFolder, "/");
-        return SearchResultsDto.builder()
-                .itemName(name)
-                .displayPath(newPath)
-                .isDirectory(isDirectory)
-                .build();
-    }
-
-    @Override
-    public List<S3ItemInfoDto> getAllItems(String S3UserItemsPath) {
-        List<S3ItemInfoDto> items = new ArrayList<>();
-
-        List<S3Path> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(S3UserItemsPath, false);
-
-        for (S3Path itemAbsolutePath : itemsAbsolutePath) {
-            String itemName = itemAbsolutePath.getItemName();
-            String pathWithoutUserRootFolder = excludeRootUserFolderFromItemAbsolutePath(
-                    itemAbsolutePath.getAbsolutePath()
-            );
-            S3ItemInfoDto itemInfo = S3ItemInfoDto.builder()
-                    .itemName(itemName)
-                    .absolutePath(pathWithoutUserRootFolder)
-                    .isDirectory(itemAbsolutePath.isDirectory())
-                    .build();
-            items.add(itemInfo);
-        }
-
-        return items;
-    }
-    private String excludeRootUserFolderFromItemAbsolutePath(String itemAbsolutePath) {
-        return itemAbsolutePath.substring(itemAbsolutePath.indexOf("/")+1);
     }
 }

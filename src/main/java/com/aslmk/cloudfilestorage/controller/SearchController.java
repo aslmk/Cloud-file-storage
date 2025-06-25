@@ -1,7 +1,7 @@
 package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
-import com.aslmk.cloudfilestorage.s3.StorageService;
+import com.aslmk.cloudfilestorage.service.ItemSearchService;
 import com.aslmk.cloudfilestorage.util.StorageInputValidator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,10 +13,10 @@ import java.util.List;
 
 @Controller
 public class SearchController {
-    private final StorageService storageService;
+    private final ItemSearchService itemSearchService;
 
-    public SearchController(StorageService storageService) {
-        this.storageService = storageService;
+    public SearchController(ItemSearchService itemSearchService) {
+        this.itemSearchService = itemSearchService;
     }
 
     @GetMapping("/search")
@@ -32,7 +32,7 @@ public class SearchController {
             return "search-page";
         }
 
-        List<SearchResultsDto> searchResults = storageService.searchItem(query);
+        List<SearchResultsDto> searchResults = itemSearchService.search(query);
         model.addAttribute("searchResults", searchResults);
 
         return "search-page";

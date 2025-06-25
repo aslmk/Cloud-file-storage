@@ -1,0 +1,72 @@
+package com.aslmk.cloudfilestorage.service.Impl;
+
+import com.aslmk.cloudfilestorage.dto.S3Path;
+import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
+import com.aslmk.cloudfilestorage.service.ItemSearchService;
+import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
+import com.aslmk.cloudfilestorage.util.UserPathResolver;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+@Service
+public class ItemSearchServiceImpl implements ItemSearchService {
+
+    private final UserPathResolver userPathResolver;
+    private final StoragePathHelperUtil storagePathHelperUtil;
+
+    public ItemSearchServiceImpl(UserPathResolver userPathResolver, StoragePathHelperUtil storagePathHelperUtil) {
+        this.userPathResolver = userPathResolver;
+        this.storagePathHelperUtil = storagePathHelperUtil;
+    }
+
+
+    @Override
+    public List<SearchResultsDto> search(String query) {
+        String userRootFolder = userPathResolver.getUserRootFolder();
+        List<S3Path> allItems = storagePathHelperUtil.getItemsAbsolutePath(userRootFolder, true);
+        return filterMatchingItems(allItems, query);
+    }
+
+    private List<SearchResultsDto> filterMatchingItems(List<S3Path> allItems, String query) {
+        String normalizedQuery = query.endsWith("/") ? query.substring(0, query.length() - 1) : query;
+        Set<String> seenPaths = new HashSet<>();
+        List<SearchResultsDto> results = new ArrayList<>();
+        for (S3Path item : allItems) {
+            String itemName = item.getItemName();
+            String absolutePath = item.getAbsolutePath();
+            String parentPath = item.getParentPath();
+            boolean isDir = query.endsWith("/");
+            boolean nameMatches = itemName.contains(normalizedQuery);
+            boolean parentMatches = isDir && item.getLastFolderName().contains(normalizedQuery);
+
+            if (!isDir && nameMatches && seenPaths.add(absolutePath)) {
+                results.add(buildResult(itemName, parentPath, false));
+            }
+
+            if (isDir && parentMatches && seenPaths.add(parentPath)) {
+
+                if (userPathResolver.getUserRootFolder().equals(parentPath)) {
+                    continue;
+                }
+
+                String folderName = item.getLastFolderName();
+                results.add(buildResult(folderName, parentPath, true));
+            }
+        }
+
+        return results;
+    }
+    private SearchResultsDto buildResult(String name, String path, boolean isDirectory) {
+        String userRootFolder = userPathResolver.getUserRootFolder();
+        String newPath = path.replace(userRootFolder, "/");
+        return SearchResultsDto.builder()
+                .itemName(name)
+                .displayPath(newPath)
+                .isDirectory(isDirectory)
+                .build();
+    }
+}
