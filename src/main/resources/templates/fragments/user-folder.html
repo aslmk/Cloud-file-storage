@@ -35,12 +35,12 @@
             <i class="fa-solid fa-pen-to-square"></i>
         </button>
 
-        <form th:action="@{/remove}" method="post" class="m-0">
-            <input type="hidden" name="path" th:value="${folder.absolutePath}">
-            <button type="submit" class="btn btn-sm btn-remove">
-                <i class="fas fa-trash"></i>
-            </button>
-        </form>
+        <button class="btn btn-sm btn-remove"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal"
+                th:data-whatever="${folder.absolutePath}">
+            <i class="fas fa-trash"></i>
+        </button>
     </div>
 </div>
 </html>
