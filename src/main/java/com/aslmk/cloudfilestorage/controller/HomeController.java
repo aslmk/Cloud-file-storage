@@ -1,6 +1,7 @@
 package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
+import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.dto.UploadItemRequestDto;
 import com.aslmk.cloudfilestorage.s3.StorageService;
 import com.aslmk.cloudfilestorage.service.DirectoryListingService;
@@ -56,14 +57,15 @@ public class HomeController {
                 .build();
 
         storageService.saveItem(uploadItemRequestDto);
-        String encodedPath = userPathResolver.encodeUserS3Path(path);
-        return "redirect:/home?path="+ encodedPath;
+        return resolveRedirectUrl(path);
     }
     @PostMapping("/remove")
     public String removeItem(@RequestParam(value = "path", required = false) String path) {
         String itemFullPath = userPathResolver.getUserRootFolder()+path;
         storageService.removeItem(itemFullPath);
-        return "redirect:/home";
+
+        String parentPath = new S3Path(itemFullPath).getParentPath();
+        return resolveRedirectUrl(parentPath);
     }
 
     @PostMapping("/rename")
@@ -79,8 +81,17 @@ public class HomeController {
 
         storageService.renameItem(normalizedOldItemAbsolutePath, newItemName);
 
-        String encodedPath = userPathResolver.encodeUserS3Path(path);
-        return "redirect:/home?path=" + encodedPath;
+        return resolveRedirectUrl(path);
     }
 
+    private String resolveRedirectUrl(String path) {
+        if (path == null) return "redirect:/home";
+
+        String resolvedPath = userPathResolver.resolveUserS3Path(path);
+
+        if (resolvedPath.replaceAll("/+$", "").trim().isEmpty()) return "redirect:/home";
+
+        String encodedPath = userPathResolver.encodeUserS3Path(resolvedPath);
+        return "redirect:/home?path=" + encodedPath;
+    }
 }
