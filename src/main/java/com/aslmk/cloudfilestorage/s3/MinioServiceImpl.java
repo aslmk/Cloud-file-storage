@@ -57,13 +57,13 @@ public class MinioServiceImpl implements StorageService {
     }
 
     @Override
-    public void renameItem(String oldItemName, String newItemName)  {
-        List<S3Path> oldItemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(oldItemName, true);
+    public void renameItem(String oldItemFullPath, String newItemName)  {
+        List<S3Path> oldItemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(oldItemFullPath, true);
         for (S3Path oldItemAbsolutePath : oldItemsAbsolutePath) {
             ObjectMetaDataDto oldItemMetaData = minioRepository.getItemMetadata(oldItemAbsolutePath.getAbsolutePath());
 
             try (InputStream oldItemStream = minioRepository.downloadItem(oldItemAbsolutePath.getAbsolutePath())) {
-                String newItemAbsolutePath = oldItemAbsolutePath.buildNewPath(oldItemName.endsWith("/"), newItemName);
+                String newItemAbsolutePath = oldItemAbsolutePath.buildNewPath(oldItemFullPath.endsWith("/"), newItemName);
                 StorageObjectWithMetaDataDto storageObjectWithMetaDataDto = StorageObjectWithMetaDataDto
                         .builder()
                         .absolutePath(newItemAbsolutePath)

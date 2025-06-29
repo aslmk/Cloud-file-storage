@@ -71,12 +71,12 @@ public class HomeController {
     @PostMapping("/rename")
     public String renameItem(
             @RequestParam(value = "path", required = false) String path,
-            @RequestParam("oldItemName") String oldItemName,
+            @RequestParam("oldItemFullPath") String oldItemFullPath,
             @RequestParam("newItemName") String newItemName) throws BadRequestException {
         StorageInputValidator.validateItemName(newItemName);
 
         String userRootFolder = userPathResolver.getUserRootFolder();
-        String normalizedOldItemAbsolutePath = userRootFolder + oldItemName;
+        String normalizedOldItemAbsolutePath = userRootFolder + oldItemFullPath;
         newItemName = storagePathHelperUtil.normalizeS3ObjectName(normalizedOldItemAbsolutePath, newItemName);
 
         storageService.renameItem(normalizedOldItemAbsolutePath, newItemName);
