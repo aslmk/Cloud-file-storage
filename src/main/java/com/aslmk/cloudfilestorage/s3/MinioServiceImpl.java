@@ -63,7 +63,8 @@ public class MinioServiceImpl implements StorageService {
             ObjectMetaDataDto oldItemMetaData = minioRepository.getItemMetadata(oldItemAbsolutePath.getAbsolutePath());
 
             try (InputStream oldItemStream = minioRepository.downloadItem(oldItemAbsolutePath.getAbsolutePath())) {
-                String newItemAbsolutePath = oldItemAbsolutePath.buildNewPath(oldItemFullPath.endsWith("/"), newItemName);
+                String oldItemName = new S3Path(oldItemFullPath).getItemName();
+                String newItemAbsolutePath = oldItemAbsolutePath.buildNewPath(newItemName, oldItemName);
                 StorageObjectWithMetaDataDto storageObjectWithMetaDataDto = StorageObjectWithMetaDataDto
                         .builder()
                         .absolutePath(newItemAbsolutePath)

@@ -42,29 +42,7 @@ public class S3Path {
         return extractName(normalizePath(parentPath));
     }
 
-    public String buildNewPath(boolean isFolderRename , String newItemName) {
-        return isFolderRename ? buildFolderPath(newItemName) : buildFilePath(newItemName);
-    }
-    private String buildFolderPath(String newFolderName) {
-        String parentPath = getParentPath();
-        String currentFolderName = getLastFolderName();
-        String grandParentPath = extractGrandParentPath(parentPath, currentFolderName);
-        String fileName = extractFileName(parentPath);
-        return grandParentPath + newFolderName + fileName;
-    }
-    private String buildFilePath(String newItemName) {
-        return getParentPath() + newItemName;
-    }
-    private String extractGrandParentPath(String parentPath, String folderName) {
-        String folderNameWithSeparator = folderName + "/";
-        int folderStartIndex = parentPath.lastIndexOf(folderNameWithSeparator);
-        return folderStartIndex >= 0
-                ? parentPath.substring(0, folderStartIndex)
-                : parentPath;
-    }
-    private String extractFileName(String parentPath) {
-        return absolutePath.startsWith(parentPath)
-                ? absolutePath.substring(parentPath.length())
-                : "";
+    public String buildNewPath(String newItemName, String oldItemName) {
+        return absolutePath.replaceFirst(oldItemName, newItemName);
     }
 }
