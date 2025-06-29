@@ -30,6 +30,11 @@ public class UserPathResolver {
         }
 
         String normalizedPath = decodedPath.replaceAll("/+$", "/");
+
+        if (normalizedPath.startsWith("/")) {
+            normalizedPath = normalizedPath.substring(1);
+        }
+
         S3userPath.append(normalizedPath);
 
         return S3userPath.toString();
@@ -37,12 +42,18 @@ public class UserPathResolver {
 
     public String encodeUserS3Path(String path) {
         String userRootFolder = getUserRootFolder();
-        if (path != null && !path.isEmpty()) {
-            String res = path.replace(userRootFolder, "");
-            return URLEncoder.encode(res, StandardCharsets.UTF_8);
-        } else {
+
+        if (path == null) {
             return "";
         }
+
+        String normalizedPath = path.replace(userRootFolder, "");
+
+        if (normalizedPath.replaceAll("/+$", "").trim().isEmpty()) {
+            return "";
+        }
+
+        return URLEncoder.encode(normalizedPath, StandardCharsets.UTF_8);
     }
 
     public String getUserRootFolder() {
