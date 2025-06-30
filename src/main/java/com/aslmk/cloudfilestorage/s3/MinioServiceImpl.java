@@ -60,9 +60,9 @@ public class MinioServiceImpl implements StorageService {
     public void renameItem(String oldItemFullPath, String newItemName)  {
         List<S3Path> oldItemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(oldItemFullPath, true);
         for (S3Path oldItemAbsolutePath : oldItemsAbsolutePath) {
-            ObjectMetaDataDto oldItemMetaData = minioRepository.getItemMetadata(oldItemAbsolutePath.getAbsolutePath());
+            ObjectMetaDataDto oldItemMetaData = minioRepository.getItemMetadata(oldItemAbsolutePath.absolutePath());
 
-            try (InputStream oldItemStream = minioRepository.downloadItem(oldItemAbsolutePath.getAbsolutePath())) {
+            try (InputStream oldItemStream = minioRepository.downloadItem(oldItemAbsolutePath.absolutePath())) {
                 String oldItemName = new S3Path(oldItemFullPath).getItemName();
                 String newItemAbsolutePath = oldItemAbsolutePath.buildNewPath(newItemName, oldItemName);
                 StorageObjectWithMetaDataDto storageObjectWithMetaDataDto = StorageObjectWithMetaDataDto
@@ -74,7 +74,7 @@ public class MinioServiceImpl implements StorageService {
 
                 minioRepository.saveItem(storageObjectWithMetaDataDto);
 
-                removeItem(oldItemAbsolutePath.getAbsolutePath());
+                removeItem(oldItemAbsolutePath.absolutePath());
             } catch (IOException e) {
                 throw new StorageException("Error while renaming items");
             }
@@ -86,7 +86,7 @@ public class MinioServiceImpl implements StorageService {
         if (itemName.endsWith("/")) {
             List<S3Path> itemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(itemName, true);
             for (S3Path itemAbsolutePath : itemsAbsolutePath) {
-                minioRepository.removeItem(itemAbsolutePath.getAbsolutePath());
+                minioRepository.removeItem(itemAbsolutePath.absolutePath());
             }
         } else {
             minioRepository.removeItem(itemName);

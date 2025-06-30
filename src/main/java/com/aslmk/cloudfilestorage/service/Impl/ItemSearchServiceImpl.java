@@ -37,7 +37,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         List<SearchResultsDto> results = new ArrayList<>();
         for (S3Path item : allItems) {
             String itemName = item.getItemName();
-            String absolutePath = item.getAbsolutePath();
+            String absolutePath = item.absolutePath();
             String parentPath = item.getParentPath();
             boolean isDir = query.endsWith("/");
             boolean nameMatches = itemName.contains(normalizedQuery);

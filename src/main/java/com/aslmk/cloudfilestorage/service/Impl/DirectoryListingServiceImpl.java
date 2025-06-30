@@ -29,7 +29,7 @@ public class DirectoryListingServiceImpl implements DirectoryListingService {
     private S3ItemInfoDto toDto(S3Path item) {
         return S3ItemInfoDto.builder()
                 .itemName(item.getItemName())
-                .absolutePath(removeUserRootFolder(item.getAbsolutePath()))
+                .absolutePath(removeUserRootFolder(item.absolutePath()))
                 .isDirectory(item.isDirectory())
                 .build();
     }
