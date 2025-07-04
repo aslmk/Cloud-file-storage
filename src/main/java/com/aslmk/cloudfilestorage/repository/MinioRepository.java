@@ -27,16 +27,21 @@ public class MinioRepository {
     }
 
     @PostConstruct
-    public void createBucketIfNotExists() throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        boolean found = minioClient.bucketExists(BucketExistsArgs
-                .builder()
-                .bucket(bucketName)
-                .build());
+    public void createBucketIfNotExists() {
+        try {
+            boolean found = minioClient.bucketExists(BucketExistsArgs
+                    .builder()
+                    .bucket(bucketName)
+                    .build());
 
-        if (!found) {
-            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            if (!found) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            }
+        } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
+            throw new StorageException("Bucket initialization failed");
         }
-
     }
 
     public void saveItem(StorableFileDto item) {
