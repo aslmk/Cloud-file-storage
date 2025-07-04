@@ -1,9 +1,6 @@
 package com.aslmk.cloudfilestorage.s3;
 
-import com.aslmk.cloudfilestorage.dto.ObjectMetaDataDto;
-import com.aslmk.cloudfilestorage.dto.S3Path;
-import com.aslmk.cloudfilestorage.dto.StorageObjectWithMetaDataDto;
-import com.aslmk.cloudfilestorage.dto.UploadItemRequestDto;
+import com.aslmk.cloudfilestorage.dto.*;
 import com.aslmk.cloudfilestorage.exception.StorageException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
@@ -33,23 +30,14 @@ public class MinioServiceImpl implements StorageService {
                 throw new BadRequestException("Upload failed: file or folder name is empty");
             }
 
-            try (InputStream itemStream = multipartFile.getInputStream()) {
-
-                ObjectMetaDataDto objectMetaDataDto = ObjectMetaDataDto
-                        .builder()
+            try {
+                StorableFileDto storableFile = StorableFileDto.builder()
+                        .absolutePath(item.getParentPath()+multipartFile.getOriginalFilename())
+                        .inputStream(multipartFile.getInputStream())
                         .contentType(multipartFile.getContentType())
                         .size(multipartFile.getResource().contentLength())
                         .build();
-
-                StorageObjectWithMetaDataDto storageObjectWithMetaDataDto = StorageObjectWithMetaDataDto
-                        .builder()
-                        .absolutePath(item.getParentPath()+multipartFile.getOriginalFilename())
-                        .inputStream(itemStream)
-                        .objectMetaData(objectMetaDataDto)
-                        .build();
-
-                minioRepository.saveItem(storageObjectWithMetaDataDto);
-
+                minioRepository.saveItem(storableFile);
             } catch (IOException e) {
                 throw new BadRequestException("Upload failed: " + e.getMessage());
             }
@@ -59,20 +47,23 @@ public class MinioServiceImpl implements StorageService {
     @Override
     public void renameItem(String oldItemFullPath, String newItemName)  {
         List<S3Path> oldItemsAbsolutePath = storagePathHelperUtil.getItemsAbsolutePath(oldItemFullPath, true);
+
         for (S3Path oldItemAbsolutePath : oldItemsAbsolutePath) {
-            ObjectMetaDataDto oldItemMetaData = minioRepository.getItemMetadata(oldItemAbsolutePath.absolutePath());
 
             try (InputStream oldItemStream = minioRepository.downloadItem(oldItemAbsolutePath.absolutePath())) {
                 String oldItemName = new S3Path(oldItemFullPath).getItemName();
                 String newItemAbsolutePath = oldItemAbsolutePath.buildNewPath(newItemName, oldItemName);
-                StorageObjectWithMetaDataDto storageObjectWithMetaDataDto = StorageObjectWithMetaDataDto
-                        .builder()
+
+                FileMetadata metadata = minioRepository.getFileMetadata(oldItemAbsolutePath.absolutePath());
+
+                StorableFileDto storableFile = StorableFileDto.builder()
                         .absolutePath(newItemAbsolutePath)
                         .inputStream(oldItemStream)
-                        .objectMetaData(oldItemMetaData)
+                        .contentType(metadata.contentType())
+                        .size(metadata.size())
                         .build();
 
-                minioRepository.saveItem(storageObjectWithMetaDataDto);
+                minioRepository.saveItem(storableFile);
 
                 removeItem(oldItemAbsolutePath.absolutePath());
             } catch (IOException e) {

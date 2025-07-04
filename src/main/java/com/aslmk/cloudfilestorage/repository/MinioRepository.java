@@ -1,7 +1,7 @@
 package com.aslmk.cloudfilestorage.repository;
 
-import com.aslmk.cloudfilestorage.dto.ObjectMetaDataDto;
-import com.aslmk.cloudfilestorage.dto.StorageObjectWithMetaDataDto;
+import com.aslmk.cloudfilestorage.dto.FileMetadata;
+import com.aslmk.cloudfilestorage.dto.StorableFileDto;
 import com.aslmk.cloudfilestorage.exception.StorageException;
 import io.minio.*;
 import io.minio.errors.*;
@@ -39,14 +39,14 @@ public class MinioRepository {
 
     }
 
-    public void saveItem(StorageObjectWithMetaDataDto item) {
+    public void saveItem(StorableFileDto item) {
         try {
             minioClient.putObject(PutObjectArgs
                     .builder()
                     .bucket(bucketName)
                     .object(item.getAbsolutePath())
-                    .stream(item.getInputStream(), item.getObjectMetaData().getSize(), -1)
-                    .contentType(item.getObjectMetaData().getContentType())
+                    .stream(item.getInputStream(), item.getSize(), -1)
+                    .contentType(item.getContentType())
                     .build());
         }  catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
                   NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
@@ -54,6 +54,7 @@ public class MinioRepository {
             throw new StorageException("Error while saving data to storage");
         }
     }
+
     public void removeItem(String itemName) {
         try {
             minioClient.removeObject(RemoveObjectArgs
@@ -67,6 +68,7 @@ public class MinioRepository {
             throw new StorageException("Error while removing data from storage");
         }
     }
+
     public Iterable<Result<Item>> listItems(String folder, boolean recursively) {
         return minioClient.listObjects(ListObjectsArgs
                 .builder()
@@ -75,6 +77,7 @@ public class MinioRepository {
                 .recursive(recursively)
                 .build());
     }
+
     private StatObjectResponse getStatObject(String itemAbsolutePath) {
         try {
             return minioClient.statObject(StatObjectArgs.builder()
@@ -87,14 +90,12 @@ public class MinioRepository {
             throw new StorageException("Unable to get object metadata");
         }
     }
-    public ObjectMetaDataDto getItemMetadata(String itemAbsolutePath) {
+
+    public FileMetadata getFileMetadata(String itemAbsolutePath) {
         StatObjectResponse statObject = getStatObject(itemAbsolutePath);
-        return ObjectMetaDataDto
-                .builder()
-                .size(statObject.size())
-                .contentType(statObject.contentType())
-                .build();
+        return new FileMetadata(statObject.contentType(), statObject.size());
     }
+
     public InputStream downloadItem(String itemAbsolutePath) {
         try {
             return minioClient.getObject(
