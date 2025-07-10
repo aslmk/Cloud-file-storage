@@ -74,6 +74,24 @@ public class MinioRepository {
         }
     }
 
+    public void renameItem(String newFullPath, String oldFullPath) {
+        try {
+            minioClient.copyObject(CopyObjectArgs
+                    .builder()
+                            .bucket(bucketName)
+                            .object(newFullPath)
+                            .source(CopySource.builder()
+                                    .bucket(bucketName)
+                                    .object(oldFullPath)
+                                    .build())
+                    .build());
+        } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
+            throw new StorageException("Error while renaming item");
+        }
+    }
+
     public Iterable<Result<Item>> listItems(String folder, boolean recursively) {
         return minioClient.listObjects(ListObjectsArgs
                 .builder()
