@@ -31,6 +31,7 @@ public class DirectoryListingServiceImpl implements DirectoryListingService {
                 .itemName(item.getItemName())
                 .absolutePath(removeUserRootFolder(item.absolutePath()))
                 .isDirectory(item.isDirectory())
+                .parentPath(item.getParentPath())
                 .build();
     }
     private String removeUserRootFolder(String fullPath) {

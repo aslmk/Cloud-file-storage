@@ -11,5 +11,6 @@ public class S3ItemInfoDto {
     private String itemName;
     private String absolutePath;
     private boolean isDirectory;
+    private String parentPath;
 }
 
