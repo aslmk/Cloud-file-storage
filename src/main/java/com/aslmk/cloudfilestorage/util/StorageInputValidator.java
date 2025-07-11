@@ -1,6 +1,7 @@
 package com.aslmk.cloudfilestorage.util;
 
-import org.apache.coyote.BadRequestException;
+
+import com.aslmk.cloudfilestorage.exception.BadRequestException;
 
 public final class StorageInputValidator {
 

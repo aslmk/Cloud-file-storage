@@ -8,7 +8,6 @@ import com.aslmk.cloudfilestorage.service.DirectoryListingService;
 import com.aslmk.cloudfilestorage.util.StorageInputValidator;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
 import com.aslmk.cloudfilestorage.util.UserPathResolver;
-import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +45,7 @@ public class HomeController {
 
     @PostMapping("/upload")
     public String uploadItem(@RequestParam("items") MultipartFile[] items,
-                             @RequestParam(value = "path", required = false) String path) throws BadRequestException {
+                             @RequestParam(value = "path", required = false) String path) {
 
         String S3UserItemsPath = userPathResolver.resolveUserS3Path(path);
 
@@ -72,7 +71,7 @@ public class HomeController {
     public String renameItem(
             @RequestParam(value = "path", required = false) String path,
             @RequestParam("oldItemFullPath") String oldItemFullPath,
-            @RequestParam("newItemName") String newItemName) throws BadRequestException {
+            @RequestParam("newItemName") String newItemName) {
         StorageInputValidator.validateItemName(newItemName);
 
         String userRootFolder = userPathResolver.getUserRootFolder();

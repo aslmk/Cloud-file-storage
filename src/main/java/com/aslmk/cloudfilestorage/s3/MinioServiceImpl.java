@@ -1,10 +1,13 @@
 package com.aslmk.cloudfilestorage.s3;
 
-import com.aslmk.cloudfilestorage.dto.*;
+import com.aslmk.cloudfilestorage.dto.FileMetadata;
+import com.aslmk.cloudfilestorage.dto.S3Path;
+import com.aslmk.cloudfilestorage.dto.StorableFileDto;
+import com.aslmk.cloudfilestorage.dto.UploadItemRequestDto;
+import com.aslmk.cloudfilestorage.exception.BadRequestException;
 import com.aslmk.cloudfilestorage.exception.StorageException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
-import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,7 +26,7 @@ public class MinioServiceImpl implements StorageService {
         this.minioRepository = minioRepository;
     }
     @Override
-    public void saveItem(UploadItemRequestDto item) throws BadRequestException {
+    public void saveItem(UploadItemRequestDto item) {
         for (MultipartFile multipartFile: item.getMultipartFiles()) {
 
             if (multipartFile.getOriginalFilename() == null || multipartFile.getOriginalFilename().isBlank()) {
