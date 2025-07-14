@@ -9,8 +9,10 @@
 <body class="bg-light">
 
 <div th:replace="~{fragments/navigation.html :: navbar(activeTab='home')}"></div>
-<div th:replace="~{fragments/modal-window.html :: modal-window}"></div>
-<div th:replace="~{fragments/delete-confirm-modal-window.html :: delete-confirm-modal}"></div>
+<div th:replace="~{fragments/rename-file-modal-window.html :: rename-file-modal}"></div>
+<div th:replace="~{fragments/rename-folder-modal-window.html :: rename-folder-modal}"></div>
+<div th:replace="~{fragments/delete-folder-confirm-modal-window.html :: delete-confirm-modal}"></div>
+<div th:replace="~{fragments/delete-file-confirm-modal-window.html :: delete-confirm-modal}"></div>
 
 <main class="container py-5">
     <div class="row justify-content-center">

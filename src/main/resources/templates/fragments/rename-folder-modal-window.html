@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="rename-folder-modal" class="modal fade" id="folderNameChangeModal" tabindex="-1" aria-labelledby="folderNameChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="folderNameChangeModalLabel">Rename folder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form th:action="@{/folder/rename}" method="post" class="m-0" th:object="${renameFolderRequest}">
+                <div class="modal-body">
+                    <label for="newFolderNameInput" class="form-label">Enter new folder name below:</label>
+                    <input id="newFolderNameInput" type="text" class="form-control" th:name="newFolderName">
+                    <input type="hidden" name="parentPath" id="parentPath">
+                    <input type="hidden" id="currentFolderName" name="oldFolderName">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+</html>

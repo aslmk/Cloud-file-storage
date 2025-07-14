@@ -1,11 +1,21 @@
-$('#changeNameModal').on('show.bs.modal', function (event) {
-    const itemName = $(event.relatedTarget).data("whatever");
+$('#fileNameChangeModal').on('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const parentPath = button.getAttribute('data-parent-path');
+    const fileName = button.getAttribute('data-item-name');
 
-    const cleanPath = itemName.endsWith('/') ? itemName.slice(0, -1) : itemName;
+    const modal = this;
+    modal.querySelector('#parentPath').value = parentPath;
+    modal.querySelector('#currentFileName').value = fileName;
+    modal.querySelector('#newFileNameInput').value = fileName;
+});
 
-    const parts = cleanPath.split('/');
-    const displayName = parts[parts.length - 1];
+$('#folderNameChangeModal').on('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const parentPath = button.getAttribute('data-parent-path');
+    const folderName = button.getAttribute('data-item-name');
 
-    $('#itemNameInput').val(displayName);
-    $('#originalItemName').val(itemName);
+    const modal = this;
+    modal.querySelector('#parentPath').value = parentPath;
+    modal.querySelector('#currentFolderName').value = folderName;
+    modal.querySelector('#newFolderNameInput').value = folderName;
 });

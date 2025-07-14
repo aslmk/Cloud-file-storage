@@ -1,11 +1,22 @@
-$('#confirmDeleteModal').on('show.bs.modal', function (event) {
+$('#confirmFileDeleteModal').on('show.bs.modal', function (event) {
     const button = $(event.relatedTarget);
-    const itemPath = button.data('whatever');
+    const filePath = button.data('whatever');
 
-    const cleanPath = itemPath.endsWith('/') ? itemPath.slice(0, -1) : itemPath;
+    const parts = filePath.split('/');
+    const displayName = parts[parts.length - 1];
+
+    $('#deleteFileName').text(displayName);
+    $('#deleteFilePath').val(filePath);
+});
+
+$('#confirmFolderDeleteModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+    const folderPath = button.data('whatever');
+
+    const cleanPath = folderPath.slice(0, -1);
     const parts = cleanPath.split('/');
     const displayName = parts[parts.length - 1];
 
-    $('#deleteItemName').text(displayName);
-    $('#deleteItemPath').val(itemPath);
+    $('#deleteFolderName').text(displayName);
+    $('#deleteFolderPath').val(folderPath);
 });

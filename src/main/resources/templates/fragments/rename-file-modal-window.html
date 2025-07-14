@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="rename-file-modal" class="modal fade" id="fileNameChangeModal" tabindex="-1" aria-labelledby="fileNameChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileNameChangeModalLabel">Rename file</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form th:action="@{/file/rename}" method="post" class="m-0" th:object="${renameFileRequest}">
+                <div class="modal-body">
+                    <label for="newFileNameInput" class="form-label">Enter new file name below:</label>
+                    <input id="newFileNameInput" type="text" class="form-control" th:name="newFileName">
+                    <input type="hidden" name="parentPath" id="parentPath">
+                    <input type="hidden" id="currentFileName" name="oldFileName">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+</html>

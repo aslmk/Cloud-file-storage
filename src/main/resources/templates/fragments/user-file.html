@@ -3,7 +3,7 @@
 <div th:insert="~{fragments/head-general.html :: head-general}"></div>
 
 <div th:fragment="user-file-upload">
-    <form th:action="@{/upload}" method="post" enctype="multipart/form-data" id="uploadFileForm">
+    <form th:action="@{/file/upload}" method="post" enctype="multipart/form-data" id="uploadFileForm">
         <input type="hidden" name="path" id="path-file">
         <div class="upload-area" id="dropZoneFile">
             <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
@@ -27,13 +27,16 @@
         <span th:text="${file.itemName}" class="text-break"></span>
     </div>
     <div class="d-flex">
-        <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#changeNameModal" th:data-whatever="${file.absolutePath}">
+        <button class="btn btn-sm btn-outline-primary me-2"
+                data-bs-toggle="modal"
+                data-bs-target="#fileNameChangeModal"
+                th:attr="data-parent-path=${file.parentPath}, data-item-name=${file.itemName}">
             <i class="fa-solid fa-pen-to-square"></i>
         </button>
 
         <button class="btn btn-sm btn-remove"
                 data-bs-toggle="modal"
-                data-bs-target="#confirmDeleteModal"
+                data-bs-target="#confirmFileDeleteModal"
                 th:data-whatever="${file.absolutePath}">
             <i class="fas fa-trash"></i>
         </button>
