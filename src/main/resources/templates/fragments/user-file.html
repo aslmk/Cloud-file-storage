@@ -27,6 +27,14 @@
         <span th:text="${file.itemName}" class="text-break"></span>
     </div>
     <div class="d-flex">
+        <form th:action="@{/file/download}" method="get" th:object="${downloadFileRequest}" class="me-2">
+            <input type="hidden" th:name="fileName" th:value="${file.itemName}">
+            <input type="hidden" th:name="parentPath" th:value="${file.parentPath}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                <i class="fa fa-download"></i>
+            </button>
+        </form>
+        
         <button class="btn btn-sm btn-outline-primary me-2"
                 data-bs-toggle="modal"
                 data-bs-target="#fileNameChangeModal"

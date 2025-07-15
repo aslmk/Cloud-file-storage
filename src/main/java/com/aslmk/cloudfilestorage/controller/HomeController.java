@@ -1,6 +1,7 @@
 package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
+import com.aslmk.cloudfilestorage.dto.file.DownloadFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.RenameFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.UploadFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.RenameFolderRequestDto;
@@ -36,6 +37,7 @@ public class HomeController {
         model.addAttribute("renameFolderRequest", new RenameFolderRequestDto());
         model.addAttribute("uploadFileRequest", new UploadFileRequestDto());
         model.addAttribute("uploadFolderRequest", new UploadFolderRequestDto());
+        model.addAttribute("downloadFileRequest", new DownloadFileRequestDto());
 
         return "home";
     }

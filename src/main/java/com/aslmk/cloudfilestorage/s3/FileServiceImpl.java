@@ -2,14 +2,19 @@ package com.aslmk.cloudfilestorage.s3;
 
 import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.dto.StorableFileDto;
+import com.aslmk.cloudfilestorage.dto.file.DownloadFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.RenameFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.UploadFileRequestDto;
 import com.aslmk.cloudfilestorage.exception.BadRequestException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 @Service
 public class FileServiceImpl implements FileService {
@@ -61,5 +66,19 @@ public class FileServiceImpl implements FileService {
     @Override
     public void removeFile(String fileFullPath)  {
         minioRepository.removeItem(fileFullPath);
+    }
+
+    @Override
+    public Resource downloadFile(DownloadFileRequestDto request) {
+        String fullPath = request.getParentPath()+request.getFileName();
+        byte[] bytes;
+        try (InputStream inputStream = minioRepository.downloadItem(fullPath)) {
+            bytes = StreamUtils.copyToByteArray(inputStream);
+        } catch (IOException e) {
+            throw new BadRequestException(
+                    String.format("Failed to download file '%s'. Please try again", request.getFileName())
+            );
+        }
+        return new ByteArrayResource(bytes);
     }
 }
