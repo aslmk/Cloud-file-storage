@@ -1,12 +1,17 @@
 package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.S3Path;
+import com.aslmk.cloudfilestorage.dto.folder.DownloadFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.RenameFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.UploadFolderRequestDto;
 import com.aslmk.cloudfilestorage.s3.FolderService;
 import com.aslmk.cloudfilestorage.util.UserPathResolver;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @Controller
 @RequestMapping("/folder")
@@ -50,6 +55,17 @@ public class FolderController {
         folderService.removeFolder(folderFullPath);
 
         return resolveRedirectUrl(new S3Path(path).getParentPath());
+    }
+
+    @GetMapping("/download")
+    public void downloadFolder(@ModelAttribute("downloadFolderRequest") DownloadFolderRequestDto request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/zip");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + request.getFolderName() + ".zip" + "\"");
+
+        request.setParentPath(userPathResolver.resolveUserS3Path(request.getParentPath()));
+        request.setFolderName(request.getFolderName() + "/");
+        folderService.downloadFolder(request, response.getOutputStream());
     }
 
     private String resolveRedirectUrl(String path) {

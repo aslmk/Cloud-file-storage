@@ -4,6 +4,7 @@ import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.dto.file.DownloadFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.RenameFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.UploadFileRequestDto;
+import com.aslmk.cloudfilestorage.dto.folder.DownloadFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.RenameFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.UploadFolderRequestDto;
 import com.aslmk.cloudfilestorage.service.DirectoryListingService;
@@ -38,6 +39,7 @@ public class HomeController {
         model.addAttribute("uploadFileRequest", new UploadFileRequestDto());
         model.addAttribute("uploadFolderRequest", new UploadFolderRequestDto());
         model.addAttribute("downloadFileRequest", new DownloadFileRequestDto());
+        model.addAttribute("downloadFolderRequest", new DownloadFolderRequestDto());
 
         return "home";
     }
