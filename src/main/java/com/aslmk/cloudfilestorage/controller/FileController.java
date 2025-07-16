@@ -25,12 +25,11 @@ public class FileController {
     }
 
 
-    @GetMapping("/upload")
+    @PostMapping("/upload")
     public String uploadFile(@ModelAttribute("uploadFileRequest") UploadFileRequestDto request,
                              @RequestParam(value = "path", required = false) String path) {
-
+        request.setParentPath(userPathResolver.resolveUserS3Path(request.getParentPath()));
         fileService.saveFile(request);
-
         return resolveRedirectUrl(path);
     }
 

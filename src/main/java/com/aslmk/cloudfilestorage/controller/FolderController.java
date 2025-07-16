@@ -25,10 +25,10 @@ public class FolderController {
         this.userPathResolver = userPathResolver;
     }
 
-    @GetMapping("/upload")
+    @PostMapping("/upload")
     public String uploadFolder(@ModelAttribute("uploadFolderRequest") UploadFolderRequestDto request,
                                @RequestParam(value = "path", required = false) String path) {
-
+        request.setParentPath(userPathResolver.resolveUserS3Path(request.getParentPath()));
         folderService.saveFolder(request);
         return resolveRedirectUrl(path);
     }
