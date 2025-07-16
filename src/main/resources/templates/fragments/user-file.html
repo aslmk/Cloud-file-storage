@@ -3,13 +3,15 @@
 <div th:insert="~{fragments/head-general.html :: head-general}"></div>
 
 <div th:fragment="user-file-upload">
-    <form th:action="@{/file/upload}" method="post" enctype="multipart/form-data" id="uploadFileForm">
-        <input type="hidden" name="path" id="path-file">
+    <form th:action="@{/file/upload}" method="post" enctype="multipart/form-data"
+          id="uploadFileForm" th:object="${uploadFileRequest}">
+        <input type="hidden" name="path" id="path-file" th:name="parentPath">
         <div class="upload-area" id="dropZoneFile">
             <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
             <h5>Drag & drop or click to select</h5>
             <p class="text-muted">You can upload files or folders</p>
-            <input type="file" id="fileItem" name="items" class="form-control" onchange="updateItemName('fileItem', 'selectedFileName')">
+            <input type="file" th:name="multipartFile" id="fileItem" class="form-control"
+                   onchange="updateItemName('fileItem', 'selectedFileName')">
             <p id="selectedFileName" class="mt-2 d-none"></p>
         </div>
         <div class="text-center">
@@ -19,7 +21,6 @@
         </div>
     </form>
 </div>
-
 
 <div class="d-flex align-items-center justify-content-between w-100" th:fragment="user-file-card(file)">
     <div>
