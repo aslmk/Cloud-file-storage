@@ -8,6 +8,7 @@ import com.aslmk.cloudfilestorage.dto.folder.DownloadFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.RenameFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.UploadFolderRequestDto;
 import com.aslmk.cloudfilestorage.service.DirectoryListingService;
+import com.aslmk.cloudfilestorage.util.BreadcrumbUtil;
 import com.aslmk.cloudfilestorage.util.UserPathResolver;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,11 +21,14 @@ import java.util.List;
 public class HomeController {
     private final UserPathResolver userPathResolver;
     private final DirectoryListingService directoryListingService;
+    private final BreadcrumbUtil breadcrumbUtil;
 
     public HomeController(UserPathResolver userPathResolver,
-                          DirectoryListingService directoryListingService) {
+                          DirectoryListingService directoryListingService,
+                          BreadcrumbUtil breadcrumbUtil) {
         this.userPathResolver = userPathResolver;
         this.directoryListingService = directoryListingService;
+        this.breadcrumbUtil = breadcrumbUtil;
     }
 
     @GetMapping("/home")
@@ -40,6 +44,7 @@ public class HomeController {
         model.addAttribute("uploadFolderRequest", new UploadFolderRequestDto());
         model.addAttribute("downloadFileRequest", new DownloadFileRequestDto());
         model.addAttribute("downloadFolderRequest", new DownloadFolderRequestDto());
+        model.addAttribute("breadcrumbPaths", breadcrumbUtil.getBreadcrumb(path));
 
         return "home";
     }

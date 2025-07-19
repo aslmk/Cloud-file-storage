@@ -40,6 +40,15 @@
             <div class="files-container">
                 <h4 class="mb-3">My Files & Folders</h4>
 
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-3">
+                        <li class="breadcrumb-item"><a th:href="@{/home}">Home</a></li>
+                        <li th:each="path : ${breadcrumbPaths}" class="breadcrumb-item">
+                            <a th:href="@{/home(path=${path.fullPath})}" th:text="${path.name}"></a>
+                        </li>
+                    </ol>
+                </nav>
+
                 <div th:if="${userItems.isEmpty()}" class="no-files">
                     <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
                     <p>You don't have any uploaded files or folders yet</p>
