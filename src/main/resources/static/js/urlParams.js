@@ -9,5 +9,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('path-file').value = pathValue;
     document.getElementById('path-folder').value = pathValue;
-    document.getElementById('renamePath').value = pathValue;
 });
