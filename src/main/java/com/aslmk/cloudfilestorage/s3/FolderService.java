@@ -11,4 +11,5 @@ public interface FolderService {
     void renameFolder(RenameFolderRequestDto request);
     void removeFolder(String folderFullPath);
     void downloadFolder(DownloadFolderRequestDto request, OutputStream outputStream);
+    void createEmptyFolder(String currentDirectory, String folderName);
 }

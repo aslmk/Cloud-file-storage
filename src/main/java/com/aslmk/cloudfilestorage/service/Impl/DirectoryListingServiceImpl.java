@@ -4,6 +4,7 @@ import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.service.DirectoryListingService;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,6 +12,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class DirectoryListingServiceImpl implements DirectoryListingService {
+
+    @Value("${empty-folder-marker}")
+    private String EMPTY_FOLDER;
 
     private final StoragePathHelperUtil storagePathHelperUtil;
 
@@ -23,6 +27,7 @@ public class DirectoryListingServiceImpl implements DirectoryListingService {
         List<S3Path> userItems = storagePathHelperUtil.getItemsAbsolutePath(path, false);
         return userItems.stream()
                 .map(this::toDto)
+                .filter(item -> !item.getAbsolutePath().endsWith(EMPTY_FOLDER))
                 .collect(Collectors.toList());
     }
 

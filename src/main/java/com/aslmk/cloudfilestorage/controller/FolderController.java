@@ -68,6 +68,14 @@ public class FolderController {
         folderService.downloadFolder(request, response.getOutputStream());
     }
 
+    @PostMapping
+    public String createFolder(@RequestParam(value = "path", required = false) String path,
+                             @RequestParam(value = "folderName") String folderName) {
+        String currentDirectory = userPathResolver.resolveUserS3Path(path);
+        folderService.createEmptyFolder(currentDirectory, folderName);
+        return resolveRedirectUrl(path);
+    }
+
     private String resolveRedirectUrl(String path) {
         if (path == null) return "redirect:/home";
 

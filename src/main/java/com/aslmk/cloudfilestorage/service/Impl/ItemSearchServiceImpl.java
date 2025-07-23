@@ -5,6 +5,7 @@ import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
 import com.aslmk.cloudfilestorage.service.ItemSearchService;
 import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
 import com.aslmk.cloudfilestorage.util.UserPathResolver;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,6 +15,9 @@ import java.util.Set;
 
 @Service
 public class ItemSearchServiceImpl implements ItemSearchService {
+
+    @Value("${empty-folder-marker}")
+    private String EMPTY_FOLDER;
 
     private final UserPathResolver userPathResolver;
     private final StoragePathHelperUtil storagePathHelperUtil;
@@ -38,20 +42,21 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         for (S3Path item : allItems) {
             String itemName = item.getItemName();
             String absolutePath = item.absolutePath();
-            String parentPath = item.getParentPath();
+
+            boolean isEmptyFolder = absolutePath.endsWith(EMPTY_FOLDER);
+            String parentPath = isEmptyFolder ?
+                    new S3Path(item.getParentPath()).getParentPath() :
+                    item.getParentPath();
+
             boolean isDir = query.endsWith("/");
             boolean nameMatches = itemName.contains(normalizedQuery);
             boolean parentMatches = isDir && item.getLastFolderName().contains(normalizedQuery);
 
-            if (!isDir && nameMatches && seenPaths.add(absolutePath)) {
+            if (!isDir && nameMatches && !isEmptyFolder && seenPaths.add(absolutePath)) {
                 results.add(buildResult(itemName, parentPath, false));
             }
 
-            if (isDir && parentMatches && seenPaths.add(parentPath)) {
-
-                if (userPathResolver.getUserRootFolder().equals(parentPath)) {
-                    continue;
-                }
+            if (isDir && parentMatches && isEmptyFolder && seenPaths.add(parentPath)) {
 
                 String folderName = item.getLastFolderName();
                 results.add(buildResult(folderName, parentPath, true));

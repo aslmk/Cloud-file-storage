@@ -13,6 +13,7 @@
 <div th:replace="~{fragments/rename-folder-modal-window.html :: rename-folder-modal}"></div>
 <div th:replace="~{fragments/delete-folder-confirm-modal-window.html :: delete-confirm-modal}"></div>
 <div th:replace="~{fragments/delete-file-confirm-modal-window.html :: delete-confirm-modal}"></div>
+<div th:replace="~{fragments/create-empty-folder-modal-window.html :: create-empty-folder-modal}"></div>
 
 <main class="container py-5">
     <div class="row justify-content-center">
@@ -38,7 +39,15 @@
             </div>
 
             <div class="files-container">
-                <h4 class="mb-3">My Files & Folders</h4>
+                <div class="d-flex align-items-center justify-content-between w-100">
+                    <h4 class="mb-3">My Files & Folders</h4>
+
+                    <button class="btn btn-sm btn-outline-secondary me-2"
+                            data-bs-toggle="modal"
+                            data-bs-target="#emptyFolderModal">
+                        <i class="fa-regular fa-folder-open"></i>
+                    </button>
+                </div>
 
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-3">

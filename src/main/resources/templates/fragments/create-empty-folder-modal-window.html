@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="create-empty-folder-modal" class="modal fade" id="emptyFolderModal" tabindex="-1" aria-labelledby="emptyFolderModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emptyFolderModalLabel">Folder name</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/folder}" method="post" class="m-0">
+                <div class="modal-body">
+                    <label for="emptyFolderNameInput" class="form-label">Enter folder name below:</label>
+                    <input id="emptyFolderNameInput" type="text" name="folderName" class="form-control">
+                    <input type="hidden" name="path" id="empty-folder">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+</html>
