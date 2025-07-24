@@ -33,7 +33,6 @@ public class StoragePathHelperUtil {
                 Item item = result.get();
                 String absolutePath = item.objectName();
                 items.add(new S3Path(absolutePath));
-
             }
 
             return items;
@@ -43,13 +42,4 @@ public class StoragePathHelperUtil {
             throw new StorageException("Error while fetching data from storage");
         }
     }
-
-    public String normalizeS3ObjectName(String oldItemName, String newItemName) {
-        if (oldItemName.endsWith("/")) {
-            newItemName = newItemName.replaceAll("/+$","");
-            newItemName += "/";
-        }
-        return newItemName;
-    }
-
 }
