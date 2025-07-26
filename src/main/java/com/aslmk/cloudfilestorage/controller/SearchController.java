@@ -2,7 +2,6 @@ package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
 import com.aslmk.cloudfilestorage.service.ItemSearchService;
-import com.aslmk.cloudfilestorage.util.StorageInputValidator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +26,7 @@ public class SearchController {
             return "search-page";
         }
 
-        if (!StorageInputValidator.isSearchQueryValid(query)) {
+        if (!query.replaceAll("/+$", "").trim().isEmpty()) {
             model.addAttribute("searchResults", Collections.emptyList());
             return "search-page";
         }
