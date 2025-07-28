@@ -74,7 +74,7 @@ public class MinioRepository {
         }
     }
 
-    public void renameItem(String newFullPath, String oldFullPath) {
+    public void copyItem(String newFullPath, String oldFullPath) {
         try {
             minioClient.copyObject(CopyObjectArgs
                     .builder()

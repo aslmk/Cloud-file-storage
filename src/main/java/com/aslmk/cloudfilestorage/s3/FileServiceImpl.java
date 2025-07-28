@@ -59,7 +59,7 @@ public class FileServiceImpl implements FileService {
         String newFullPath = new S3Path(oldFullPath)
                 .buildNewPath(request.getNewFileName(), request.getOldFileName());
 
-        minioRepository.renameItem(newFullPath, oldFullPath);
+        minioRepository.copyItem(newFullPath, oldFullPath);
         removeFile(oldFullPath);
     }
 
