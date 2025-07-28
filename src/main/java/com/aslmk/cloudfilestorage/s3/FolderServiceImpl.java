@@ -70,7 +70,7 @@ public class FolderServiceImpl implements FolderService {
 
             String newFullPath = request.getParentPath()+newFolderPath;
 
-            minioRepository.renameItem(newFullPath, file.absolutePath());
+            minioRepository.copyItem(newFullPath, file.absolutePath());
         }
 
         removeFolder(folderFullPath);
