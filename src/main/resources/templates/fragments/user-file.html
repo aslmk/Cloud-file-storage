@@ -35,7 +35,14 @@
                 <i class="fa fa-download"></i>
             </button>
         </form>
-        
+
+        <button class="btn btn-sm btn-outline-secondary me-2"
+                data-bs-toggle="modal"
+                data-bs-target="#fileMoveModal"
+                th:attr="data-file-name=${file.itemName}, data-parent-path=${file.parentPath}">
+            <i class="fa-solid fa-arrows-up-down-left-right"></i>
+        </button>
+
         <button class="btn btn-sm btn-outline-primary me-2"
                 data-bs-toggle="modal"
                 data-bs-target="#fileNameChangeModal"

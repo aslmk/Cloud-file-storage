@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="move-file-modal" class="modal fade" id="fileMoveModal" tabindex="-1" aria-labelledby="fileMoveModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="fileMoveModalLabel">
+          You are moving file: <span id="movedFileName" class="fw-semibold"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form th:action="@{/file/move}" method="post" class="m-0" th:object="${moveFileRequest}">
+        <div class="modal-body">
+          <label for="targetFolder">Move to folder: </label>
+          <select th:name="targetPath" id="targetFolder" class="form-select">
+            <option th:each="folder : ${availableFolders}"
+                    th:value="${folder.path}" th:text="${folder.name}">
+            </option>
+          </select>
+          <input type="hidden" th:name="name" id="fileName">
+          <input type="hidden" th:name="parentPath" id="parentPath">
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Move</button>
+          </div>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+</html>

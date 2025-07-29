@@ -81,4 +81,10 @@ public class FileServiceImpl implements FileService {
         }
         return new ByteArrayResource(bytes);
     }
+
+    @Override
+    public void moveFile(String currentFilePath, String newFilePath) {
+        minioRepository.copyItem(newFilePath, currentFilePath);
+        minioRepository.removeItem(currentFilePath);
+    }
 }

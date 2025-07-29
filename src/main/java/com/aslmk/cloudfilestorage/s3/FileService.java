@@ -10,4 +10,5 @@ public interface FileService {
     void renameFile(RenameFileRequestDto request);
     void removeFile(String fileFullPath);
     Resource downloadFile(DownloadFileRequestDto request);
+    void moveFile(String currentFilePath, String newFilePath);
 }

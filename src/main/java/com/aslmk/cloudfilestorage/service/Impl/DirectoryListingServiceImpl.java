@@ -1,19 +1,14 @@
 package com.aslmk.cloudfilestorage.service.Impl;
 
+import com.aslmk.cloudfilestorage.dto.TargetFolderDto;
 import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.dto.S3Path;
-import com.aslmk.cloudfilestorage.exception.StorageException;
-import com.aslmk.cloudfilestorage.repository.MinioRepository;
 import com.aslmk.cloudfilestorage.service.DirectoryListingService;
-import io.minio.Result;
-import io.minio.errors.*;
-import io.minio.messages.Item;
+import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
+import com.aslmk.cloudfilestorage.util.UserPathResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,15 +19,18 @@ public class DirectoryListingServiceImpl implements DirectoryListingService {
     @Value("${empty-folder-marker}")
     private String EMPTY_FOLDER;
 
-    private final MinioRepository minioRepository;
+    private final StoragePathHelperUtil storagePathHelperUtil;
 
-    public DirectoryListingServiceImpl(MinioRepository minioRepository) {
-        this.minioRepository = minioRepository;
+    private final UserPathResolver userPathResolver;
+
+    public DirectoryListingServiceImpl(StoragePathHelperUtil storagePathHelperUtil, UserPathResolver userPathResolver) {
+        this.storagePathHelperUtil = storagePathHelperUtil;
+        this.userPathResolver = userPathResolver;
     }
 
     @Override
     public List<S3ItemInfoDto> listItems(String path) {
-        List<S3Path> userItems = listS3Paths(path, false);
+        List<S3Path> userItems = storagePathHelperUtil.getItemsAbsolutePath(path, false);
         return userItems.stream()
                 .map(this::toDto)
                 .filter(item -> !item.getAbsolutePath().endsWith(EMPTY_FOLDER))
@@ -40,24 +38,33 @@ public class DirectoryListingServiceImpl implements DirectoryListingService {
     }
 
     @Override
-    public List<S3Path> listS3Paths(String folder, boolean recursively) {
-        try {
-            List<S3Path> items = new ArrayList<>();
+    public List<TargetFolderDto> listFolders(String currentDirectory) {
+        List<TargetFolderDto> folders = storagePathHelperUtil.getFolders(
+                userPathResolver.getUserRootFolder(),
+                true);
 
-            Iterable<Result<Item>> results = minioRepository.listItems(folder, recursively);
+        List<TargetFolderDto> result = new ArrayList<>();
 
-            for (Result<Item> result : results) {
-                Item item = result.get();
-                String absolutePath = item.objectName();
-                items.add(new S3Path(absolutePath));
+        String userRootFolder = userPathResolver.getUserRootFolder();
+
+        for (TargetFolderDto folder : folders) {
+            String name = folder.getName();
+            String displayPath = removeUserRootFolder(folder.getPath());
+            String fullPath = folder.getPath();
+
+            if (fullPath.equals(currentDirectory)) {
+                continue;
             }
 
-            return items;
-        } catch (InsufficientDataException | ErrorResponseException | IOException | NoSuchAlgorithmException |
-                 InvalidKeyException | InvalidResponseException | XmlParserException | InternalException |
-                 ServerException e) {
-            throw new StorageException("Error while fetching data from storage");
+            if ((name + "/").equals(userRootFolder)) {
+                folder.setName("Home");
+            }
+
+            folder.setPath(displayPath);
+            result.add(folder);
         }
+
+        return result;
     }
 
     private S3ItemInfoDto toDto(S3Path item) {
