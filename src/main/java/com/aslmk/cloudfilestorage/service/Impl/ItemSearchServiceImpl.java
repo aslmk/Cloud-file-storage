@@ -31,7 +31,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     @Override
     public List<SearchResultsDto> search(String query) {
         String userRootFolder = userPathResolver.getUserRootFolder();
-        List<S3Path> allItems = directoryListingService.getItemsAbsolutePath(userRootFolder, true);
+        List<S3Path> allItems = directoryListingService.listS3Paths(userRootFolder, true);
         return filterMatchingItems(allItems, query);
     }
 

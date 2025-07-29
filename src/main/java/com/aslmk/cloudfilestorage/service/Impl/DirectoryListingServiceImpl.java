@@ -32,7 +32,7 @@ public class DirectoryListingServiceImpl implements DirectoryListingService {
 
     @Override
     public List<S3ItemInfoDto> listItems(String path) {
-        List<S3Path> userItems = getItemsAbsolutePath(path, false);
+        List<S3Path> userItems = listS3Paths(path, false);
         return userItems.stream()
                 .map(this::toDto)
                 .filter(item -> !item.getAbsolutePath().endsWith(EMPTY_FOLDER))
@@ -40,7 +40,7 @@ public class DirectoryListingServiceImpl implements DirectoryListingService {
     }
 
     @Override
-    public List<S3Path> getItemsAbsolutePath(String folder, boolean recursively) {
+    public List<S3Path> listS3Paths(String folder, boolean recursively) {
         try {
             List<S3Path> items = new ArrayList<>();
 

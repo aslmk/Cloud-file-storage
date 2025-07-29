@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface DirectoryListingService {
     List<S3ItemInfoDto> listItems(String path);
-    List<S3Path> getItemsAbsolutePath(String folder, boolean recursively);
+    List<S3Path> listS3Paths(String folder, boolean recursively);
 }

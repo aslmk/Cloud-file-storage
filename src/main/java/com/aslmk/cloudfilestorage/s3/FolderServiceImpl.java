@@ -60,7 +60,7 @@ public class FolderServiceImpl implements FolderService {
     public void renameFolder(RenameFolderRequestDto request) {
         String folderFullPath = request.getParentPath()+request.getOldFolderName();
 
-        List<S3Path> listFiles = directoryListingService.getItemsAbsolutePath(folderFullPath, true);
+        List<S3Path> listFiles = directoryListingService.listS3Paths(folderFullPath, true);
 
         for (S3Path file : listFiles) {
             String tmp = file.absolutePath().replace(request.getParentPath(), "");
@@ -83,7 +83,7 @@ public class FolderServiceImpl implements FolderService {
         }
 
         directoryListingService
-                .getItemsAbsolutePath(folderFullPath, true)
+                .listS3Paths(folderFullPath, true)
                 .forEach(item ->
                         minioRepository.removeItem(item.absolutePath())
                 );
@@ -92,7 +92,7 @@ public class FolderServiceImpl implements FolderService {
     @Override
     public void downloadFolder(DownloadFolderRequestDto request, OutputStream outputStream) {
         String folder = request.getParentPath() + request.getFolderName();
-        List<S3Path> files = directoryListingService.getItemsAbsolutePath(folder, true);
+        List<S3Path> files = directoryListingService.listS3Paths(folder, true);
 
         try (ZipOutputStream zout = new ZipOutputStream(outputStream)) {
 
