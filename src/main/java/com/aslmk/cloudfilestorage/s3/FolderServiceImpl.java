@@ -8,7 +8,7 @@ import com.aslmk.cloudfilestorage.dto.folder.RenameFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.UploadFolderRequestDto;
 import com.aslmk.cloudfilestorage.exception.BadRequestException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
-import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
+import com.aslmk.cloudfilestorage.service.DirectoryListingService;
 import com.aslmk.cloudfilestorage.util.UserPathResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,15 +29,15 @@ public class FolderServiceImpl implements FolderService {
     private String EMPTY_FOLDER;
 
     private final MinioRepository minioRepository;
-    private final StoragePathHelperUtil storagePathHelperUtil;
+    private final DirectoryListingService directoryListingService;
     private final FileService fileService;
     private final UserPathResolver userPathResolver;
 
     public FolderServiceImpl(MinioRepository minioRepository,
-                             StoragePathHelperUtil storagePathHelperUtil,
+                             DirectoryListingService directoryListingService,
                              FileService fileService, UserPathResolver userPathResolver) {
         this.minioRepository = minioRepository;
-        this.storagePathHelperUtil = storagePathHelperUtil;
+        this.directoryListingService = directoryListingService;
         this.fileService = fileService;
         this.userPathResolver = userPathResolver;
     }
@@ -60,7 +60,7 @@ public class FolderServiceImpl implements FolderService {
     public void renameFolder(RenameFolderRequestDto request) {
         String folderFullPath = request.getParentPath()+request.getOldFolderName();
 
-        List<S3Path> listFiles = storagePathHelperUtil.getItemsAbsolutePath(folderFullPath, true);
+        List<S3Path> listFiles = directoryListingService.listS3Paths(folderFullPath, true);
 
         for (S3Path file : listFiles) {
             String tmp = file.absolutePath().replace(request.getParentPath(), "");
@@ -82,8 +82,8 @@ public class FolderServiceImpl implements FolderService {
             throw new RuntimeException("Folder path is not valid");
         }
 
-        storagePathHelperUtil
-                .getItemsAbsolutePath(folderFullPath, true)
+        directoryListingService
+                .listS3Paths(folderFullPath, true)
                 .forEach(item ->
                         minioRepository.removeItem(item.absolutePath())
                 );
@@ -92,7 +92,7 @@ public class FolderServiceImpl implements FolderService {
     @Override
     public void downloadFolder(DownloadFolderRequestDto request, OutputStream outputStream) {
         String folder = request.getParentPath() + request.getFolderName();
-        List<S3Path> files = storagePathHelperUtil.getItemsAbsolutePath(folder, true);
+        List<S3Path> files = directoryListingService.listS3Paths(folder, true);
 
         try (ZipOutputStream zout = new ZipOutputStream(outputStream)) {
 

@@ -2,8 +2,8 @@ package com.aslmk.cloudfilestorage.service.Impl;
 
 import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.dto.SearchResultsDto;
+import com.aslmk.cloudfilestorage.service.DirectoryListingService;
 import com.aslmk.cloudfilestorage.service.ItemSearchService;
-import com.aslmk.cloudfilestorage.util.StoragePathHelperUtil;
 import com.aslmk.cloudfilestorage.util.UserPathResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,18 +20,18 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     private String EMPTY_FOLDER;
 
     private final UserPathResolver userPathResolver;
-    private final StoragePathHelperUtil storagePathHelperUtil;
+    private final DirectoryListingService directoryListingService;
 
-    public ItemSearchServiceImpl(UserPathResolver userPathResolver, StoragePathHelperUtil storagePathHelperUtil) {
+    public ItemSearchServiceImpl(UserPathResolver userPathResolver, DirectoryListingService directoryListingService) {
         this.userPathResolver = userPathResolver;
-        this.storagePathHelperUtil = storagePathHelperUtil;
+        this.directoryListingService = directoryListingService;
     }
 
 
     @Override
     public List<SearchResultsDto> search(String query) {
         String userRootFolder = userPathResolver.getUserRootFolder();
-        List<S3Path> allItems = storagePathHelperUtil.getItemsAbsolutePath(userRootFolder, true);
+        List<S3Path> allItems = directoryListingService.listS3Paths(userRootFolder, true);
         return filterMatchingItems(allItems, query);
     }
 
