@@ -1,5 +1,6 @@
 package com.aslmk.cloudfilestorage.util;
 
+import com.aslmk.cloudfilestorage.dto.TargetFolderDto;
 import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.exception.StorageException;
 import com.aslmk.cloudfilestorage.repository.MinioRepository;
@@ -11,8 +12,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class StoragePathHelperUtil {
@@ -23,7 +23,7 @@ public class StoragePathHelperUtil {
         this.minioRepository = minioRepository;
     }
 
-    public List<S3Path> getItemsAbsolutePath(String folder, boolean recursively) {
+        public List<S3Path> getItemsAbsolutePath(String folder, boolean recursively) {
         try {
             List<S3Path> items = new ArrayList<>();
 
@@ -36,6 +36,43 @@ public class StoragePathHelperUtil {
             }
 
             return items;
+        } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
+            throw new StorageException("Error while fetching data from storage");
+        }
+    }
+
+    public List<TargetFolderDto> getFolders(String folder, boolean recursively) {
+        try {
+            List<TargetFolderDto> targetFolders = new ArrayList<>();
+            Set<String> seenFolders = new HashSet<>();
+
+            Iterable<Result<Item>> results = minioRepository.listItems(folder, recursively);
+
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                String path = item.objectName();
+                String pathWithoutFileName = path.substring(0, path.lastIndexOf('/'));
+                String[] folders = pathWithoutFileName.split("/");
+                StringBuilder folderPath = new StringBuilder();
+
+                for (String currentFolder: folders) {
+                    folderPath.append(currentFolder).append("/");
+
+                    if (!seenFolders.contains(currentFolder)) {
+                        seenFolders.add(currentFolder);
+
+                        TargetFolderDto dto = TargetFolderDto.builder()
+                                .name(currentFolder)
+                                .path(folderPath.toString())
+                                .build();
+
+                        targetFolders.add(dto);
+                    }
+                }
+            }
+            return targetFolders;
         } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
                  NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
                  InternalException e) {

@@ -2,6 +2,7 @@ package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.S3Path;
 import com.aslmk.cloudfilestorage.dto.file.DownloadFileRequestDto;
+import com.aslmk.cloudfilestorage.dto.file.MoveFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.RenameFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.UploadFileRequestDto;
 import com.aslmk.cloudfilestorage.s3.FileService;
@@ -64,6 +65,19 @@ public class FileController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         String.format("attachment; filename=\"%s\"", request.getFileName()))
                 .body(fileService.downloadFile(request));
+    }
+
+    @PostMapping("/move")
+    public String moveFile(@ModelAttribute("moveFileRequest") MoveFileRequestDto request) {
+        String resolvedCurrentPath = userPathResolver.resolveUserS3Path(request.getParentPath());
+        String resolvedTargetPath = userPathResolver.resolveUserS3Path(request.getTargetPath());
+
+        String newFilePath = resolvedTargetPath + request.getName();
+        String currentPath = resolvedCurrentPath + request.getName();
+
+        fileService.moveFile(currentPath, newFilePath);
+
+        return resolveRedirectUrl(request.getParentPath());
     }
 
     private String resolveRedirectUrl(String path) {
