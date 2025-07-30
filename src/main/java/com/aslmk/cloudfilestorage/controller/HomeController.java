@@ -2,6 +2,7 @@ package com.aslmk.cloudfilestorage.controller;
 
 import com.aslmk.cloudfilestorage.dto.S3ItemInfoDto;
 import com.aslmk.cloudfilestorage.dto.file.DownloadFileRequestDto;
+import com.aslmk.cloudfilestorage.dto.file.MoveFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.RenameFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.UploadFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.DownloadFolderRequestDto;
@@ -45,6 +46,8 @@ public class HomeController {
         model.addAttribute("downloadFileRequest", new DownloadFileRequestDto());
         model.addAttribute("downloadFolderRequest", new DownloadFolderRequestDto());
         model.addAttribute("breadcrumbPaths", breadcrumbUtil.getBreadcrumb(path));
+        model.addAttribute("moveFileRequest", new MoveFileRequestDto());
+        model.addAttribute("availableFolders", directoryListingService.listFolders(S3UserItemsPath));
 
         return "home";
     }
