@@ -74,6 +74,41 @@ public class DirectoryListingServiceImpl implements DirectoryListingService {
     }
 
     @Override
+    public List<TargetFolderDto> listFoldersForFolderMove(String currentDirectory) {
+        String userRootFolder = userPathResolver.getUserRootFolder();
+        List<TargetFolderDto> folders = getFolders(userRootFolder);
+        List<TargetFolderDto> result = new ArrayList<>();
+
+        for (TargetFolderDto folder : folders) {
+            String path = folder.getPath();
+            String parentPath = removeUserRootFolder(path);
+            S3Path s3 = new S3Path(currentDirectory);
+
+            if (path.equals(userRootFolder)) {
+                folder.setName("Home");
+            }
+
+            if (s3.getParentPath().equals(parentPath)) {
+                continue;
+            }
+
+            if (parentPath.equals(currentDirectory)) {
+                continue;
+            }
+
+            if (parentPath.startsWith(currentDirectory)) {
+                continue;
+            }
+
+            folder.setPath(parentPath);
+
+            result.add(folder);
+        }
+
+        return result;
+    }
+
+    @Override
     public List<S3Path> listS3Paths(String folder, boolean recursively) {
         try {
             List<S3Path> items = new ArrayList<>();

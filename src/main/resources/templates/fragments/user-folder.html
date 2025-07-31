@@ -42,6 +42,13 @@
             </button>
         </form>
 
+        <button class="btn btn-sm btn-outline-secondary me-2 move-folder-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#folderMoveModal"
+                th:attr="data-folder-name=${folder.itemName}, data-parent-path=${folder.parentPath}">
+            <i class="fa-solid fa-arrows-up-down-left-right"></i>
+        </button>
+
         <button class="btn btn-sm btn-outline-primary me-2"
                 data-bs-toggle="modal"
                 data-bs-target="#folderNameChangeModal"

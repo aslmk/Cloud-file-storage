@@ -12,4 +12,5 @@ public interface FolderService {
     void removeFolder(String folderFullPath);
     void downloadFolder(DownloadFolderRequestDto request, OutputStream outputStream);
     void createEmptyFolder(String currentDirectory, String folderName);
+    void moveFolder(String currentFolderPath, String newFolderPath);
 }
