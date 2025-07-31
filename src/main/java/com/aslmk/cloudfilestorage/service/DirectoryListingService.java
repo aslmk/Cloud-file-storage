@@ -10,4 +10,5 @@ public interface DirectoryListingService {
     List<S3ItemInfoDto> listItems(String path);
     List<TargetFolderDto> listFolders(String currentDirectory);
     List<S3Path> listS3Paths(String folder, boolean recursively);
+    List<TargetFolderDto> listFoldersForFolderMove(String currentDirectory);
 }

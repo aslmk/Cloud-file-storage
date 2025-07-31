@@ -6,6 +6,7 @@ import com.aslmk.cloudfilestorage.dto.file.MoveFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.RenameFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.file.UploadFileRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.DownloadFolderRequestDto;
+import com.aslmk.cloudfilestorage.dto.folder.MoveFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.RenameFolderRequestDto;
 import com.aslmk.cloudfilestorage.dto.folder.UploadFolderRequestDto;
 import com.aslmk.cloudfilestorage.service.DirectoryListingService;
@@ -48,6 +49,7 @@ public class HomeController {
         model.addAttribute("breadcrumbPaths", breadcrumbUtil.getBreadcrumb(path));
         model.addAttribute("moveFileRequest", new MoveFileRequestDto());
         model.addAttribute("availableFolders", directoryListingService.listFolders(S3UserItemsPath));
+        model.addAttribute("moveFolderRequest", new MoveFolderRequestDto());
 
         return "home";
     }

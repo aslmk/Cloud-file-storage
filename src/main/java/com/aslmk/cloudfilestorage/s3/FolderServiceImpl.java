@@ -147,4 +147,20 @@ public class FolderServiceImpl implements FolderService {
 
         minioRepository.saveItem(storableFile);
     }
+
+    @Override
+    public void moveFolder(String currentFolderPath, String newFolderPath) {
+        List<S3Path> listFiles = directoryListingService.listS3Paths(currentFolderPath, true);
+
+        for (S3Path file : listFiles) {
+
+            String movingFolder = new S3Path(currentFolderPath).getItemName();
+            String relativeFilePath = file.absolutePath().replace(currentFolderPath, "");
+            String newFullPath = newFolderPath + movingFolder + "/" + relativeFilePath;
+
+            String normalizedPath = newFullPath.replaceAll("/+$", "/");
+            minioRepository.copyItem(normalizedPath, file.absolutePath());
+            minioRepository.removeItem(file.absolutePath());
+        }
+    }
 }
