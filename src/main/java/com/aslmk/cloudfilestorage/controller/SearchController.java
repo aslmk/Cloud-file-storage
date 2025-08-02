@@ -26,7 +26,7 @@ public class SearchController {
             return "search-page";
         }
 
-        if (!query.replaceAll("/+$", "").trim().isEmpty()) {
+        if (query.replaceAll("/+$", "").trim().isEmpty()) {
             model.addAttribute("searchResults", Collections.emptyList());
             return "search-page";
         }
