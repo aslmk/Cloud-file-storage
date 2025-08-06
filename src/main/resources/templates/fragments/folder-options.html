@@ -1,5 +1,4 @@
 <th:block th:fragment="options">
-    <option selected disabled value="default">Select folder</option>
     <option th:each="folder : ${availableFoldersForFolderMove}"
             th:value="${folder.path}" th:text="${folder.name}">
     </option>
