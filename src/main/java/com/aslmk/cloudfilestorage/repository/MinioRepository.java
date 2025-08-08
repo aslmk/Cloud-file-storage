@@ -1,6 +1,5 @@
 package com.aslmk.cloudfilestorage.repository;
 
-import com.aslmk.cloudfilestorage.dto.FileMetadata;
 import com.aslmk.cloudfilestorage.dto.StorableFileDto;
 import com.aslmk.cloudfilestorage.exception.StorageException;
 import io.minio.*;
@@ -99,24 +98,6 @@ public class MinioRepository {
                 .prefix(folder)
                 .recursive(recursively)
                 .build());
-    }
-
-    private StatObjectResponse getStatObject(String itemAbsolutePath) {
-        try {
-            return minioClient.statObject(StatObjectArgs.builder()
-                    .bucket(bucketName)
-                    .object(itemAbsolutePath)
-                    .build());
-        } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
-                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
-                 InternalException e) {
-            throw new StorageException("Unable to get object metadata");
-        }
-    }
-
-    public FileMetadata getFileMetadata(String itemAbsolutePath) {
-        StatObjectResponse statObject = getStatObject(itemAbsolutePath);
-        return new FileMetadata(statObject.contentType(), statObject.size());
     }
 
     public InputStream downloadItem(String itemAbsolutePath) {
