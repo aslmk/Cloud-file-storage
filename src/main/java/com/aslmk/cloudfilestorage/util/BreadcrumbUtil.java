@@ -14,27 +14,29 @@ import java.util.List;
 public class BreadcrumbUtil {
 
     public List<BreadcrumbDto> getBreadcrumb(String path) {
-
-        if (path == null || path.isEmpty()) {
+        if (path == null || path.trim().replaceAll("/+", "").isEmpty()) {
             return Collections.emptyList();
         }
 
-        String normalizedPath = path.startsWith("/") ? path.substring(1) : path;
+        path = path.replaceAll("\\+", "%2B");
 
-        String decodedPath = URLDecoder.decode(normalizedPath, StandardCharsets.UTF_8);
+        String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+
+        String normalizedPath = decodedPath.startsWith("/") ? decodedPath.substring(1) : decodedPath;
+
+        normalizedPath = normalizedPath.replaceAll("/+", "/");
 
         List<BreadcrumbDto> breadCrumbs = new ArrayList<>();
 
-        String[] folders = decodedPath.split("/");
+        String[] folders = normalizedPath.split("/");
 
         StringBuilder folderPath = new StringBuilder();
 
         for (String folder : folders) {
-            folderPath.append(folder).append("/");
-            String encodedFolderPath = URLEncoder.encode(folderPath.toString(), StandardCharsets.UTF_8);
+            folderPath.append(folder).append(URLEncoder.encode("/", StandardCharsets.UTF_8));
             BreadcrumbDto breadCrumb = BreadcrumbDto.builder()
                     .name(folder)
-                    .fullPath(encodedFolderPath)
+                    .fullPath(folderPath.toString())
                     .build();
 
             breadCrumbs.add(breadCrumb);
